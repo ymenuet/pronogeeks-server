@@ -19,7 +19,8 @@ mongoose
     .connect(process.env.DB, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        useFindAndModify: true
+        useFindAndModify: false,
+        useCreateIndex: true
     })
     .then(x => {
         console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`)
@@ -73,7 +74,7 @@ app.locals.title = 'Express - Generated with IronGenerator';
 
 // Enable authentication using session + passport
 app.use(session({
-    secret: 'irongenerator',
+    secret: process.env.SECRET,
     resave: true,
     saveUninitialized: true,
     store: new MongoStore({
@@ -84,11 +85,14 @@ app.use(flash());
 require('./passport')(app);
 
 
-const index = require('./routes/index');
-app.use('/', index);
-
-const authRoutes = require('./routes/auth');
-app.use('/auth', authRoutes);
+app.use('/', require('./routes/index'));
+app.use('/auth', require('./routes/auth'));
+app.use('/season', require('./routes/season'))
+    // app.use('/matchweek', require('./routes/matchweek'))
+    // app.use('/geekleague', require('./routes/geekLeague'))
+    // app.use('/team', require('./routes/team'))
+    // app.use('/fixture', require('./routes/fixture'))
+    // app.use('/pronogeek', require('./routes/pronogeek'))
 
 
 module.exports = app;

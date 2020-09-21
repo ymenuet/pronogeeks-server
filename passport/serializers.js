@@ -6,11 +6,9 @@ passport.serializeUser((loggedInUser, cb) => {
 });
 
 passport.deserializeUser(async(userIdFromSession, cb) => {
-    const user = await User.findOne({
-        _id: userIdFromSession
-    }).catch(err => {
+    const user = await User.findById(userIdFromSession).catch(err => {
         cb(err);
     })
-    delete user.password
-    cb(null, userDocument);
+    user.password = undefined
+    cb(null, user);
 });
