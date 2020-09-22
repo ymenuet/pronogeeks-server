@@ -85,14 +85,14 @@ app.use(flash());
 require('./passport')(app);
 
 
-app.use('/', require('./routes/index'));
 app.use('/auth', require('./routes/auth'));
-app.use('/seasons', require('./routes/season'))
-app.use('/fixtures', require('./routes/fixture'))
-app.use('/teams', require('./routes/team'))
+app.use('/api', require('./routes/index'));
+app.use('/api/seasons', require('./routes/season'))
+app.use('/api/fixtures', require('./routes/fixture'))
+app.use('/api/teams', require('./routes/team'))
     // app.use('/geekleagues', require('./routes/geekLeague'))
     // app.use('/pronogeeks', require('./routes/pronogeek'))
-app.use('/api', require('./routes/apiFetch'))
+app.use('/api/fetch', require('./routes/apiFetch'))
 
 
 module.exports = app;

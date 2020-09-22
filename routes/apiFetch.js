@@ -4,7 +4,7 @@ const router = express.Router();
 const {
     fetchAllSeasonTeamsFromApi,
     fetchSeasonRankingFromApi,
-    fetchAllSeasonFixturesFromApi,
+    fetchSeasonMatchweekFixturesFromApi,
     fetchNextMatchweekOddsFromApi
 } = require('../controllers/apiFetch')
 
@@ -16,18 +16,18 @@ const {
 
 //=============TEAMS=================
 
-router.get('/fetch/teams/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchAllSeasonTeamsFromApi))
+router.get('/teams/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchAllSeasonTeamsFromApi))
 
-router.get('/fetch/ranking/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchSeasonRankingFromApi))
+router.get('/ranking/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchSeasonRankingFromApi))
 
 
 //============FIXTURES===============
 
-router.get('/fetch/fixtures/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchAllSeasonFixturesFromApi))
+router.get('/fixtures/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchSeasonMatchweekFixturesFromApi))
 
 
 //===========FIXTURE ODDS============
 
-router.get('/fetch/odds/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchNextMatchweekOddsFromApi))
+router.get('/odds/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchNextMatchweekOddsFromApi))
 
 module.exports = router;
