@@ -87,12 +87,12 @@ require('./passport')(app);
 
 app.use('/', require('./routes/index'));
 app.use('/auth', require('./routes/auth'));
-app.use('/season', require('./routes/season'))
-    // app.use('/matchweek', require('./routes/matchweek'))
-    // app.use('/geekleague', require('./routes/geekLeague'))
-    // app.use('/team', require('./routes/team'))
-    // app.use('/fixture', require('./routes/fixture'))
-    // app.use('/pronogeek', require('./routes/pronogeek'))
+app.use('/seasons', require('./routes/season'))
+app.use('/fixtures', require('./routes/fixture'))
+app.use('/teams', require('./routes/team'))
+    // app.use('/geekleagues', require('./routes/geekLeague'))
+    // app.use('/pronogeeks', require('./routes/pronogeek'))
+app.use('/api', require('./routes/apiFetch'))
 
 
 module.exports = app;

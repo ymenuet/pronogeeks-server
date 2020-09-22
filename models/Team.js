@@ -10,10 +10,19 @@ const TeamSchema = new Schema({
     country: String,
     logo: String,
     apiTeamID: String,
-    seasons: [{
+    season: {
         type: Schema.Types.ObjectId,
         ref: 'Season'
-    }]
+    },
+    rank: Number,
+    points: Number,
+    goalsDiff: Number,
+    matchsPlayed: Number,
+    win: Number,
+    draw: Number,
+    lose: Number,
+    goalsFor: Number,
+    goalsAgainst: Number
 }, {
     timestamps: true
 })

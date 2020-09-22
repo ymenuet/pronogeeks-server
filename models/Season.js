@@ -12,12 +12,15 @@ const SeasonSchema = new Schema({
     },
     apiLeagueID: String,
     year: Number,
+    startDate: Date,
+    endDate: Date,
     country: String,
+    countryCode: String,
     logo: String,
     flag: String,
-    matchweeks: [{
+    fixtures: [{
         type: Schema.Types.ObjectId,
-        ref: 'Matchweek'
+        ref: 'Fixture'
     }],
     status: {
         type: String,

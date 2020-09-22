@@ -4,9 +4,13 @@ const {
 } = require('mongoose')
 
 const FixtureSchema = new Schema({
-    matchweek: {
+    season: {
         type: Schema.Types.ObjectId,
-        ref: 'Matchweek',
+        ref: 'Season'
+    },
+    matchweek: {
+        type: Number,
+        required: true
     },
     apiFixtureID: String,
     date: Date,
@@ -18,24 +22,38 @@ const FixtureSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Team'
     },
-    score: {
-        home: Number,
-        away: Number
+    goalsHomeTeam: {
+        type: Number,
+        default: null
+    },
+    goalsAwayTeam: {
+        type: Number,
+        default: null
     },
     winner: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team'
+        type: String,
+        default: null
     },
     status: {
         type: String,
-        enum: ['upcoming', 'underway', 'ended'],
-        default: 'upcoming'
+        default: 'Time To Be Defined'
     },
-    odds: {
-        winHome: Number,
-        draw: Number,
-        winAway: Number
-    }
+    statusShort: {
+        type: String,
+        default: 'TBD'
+    },
+    oddsWinHome: {
+        type: Number,
+        default: null
+    },
+    oddsDraw: {
+        type: Number,
+        default: null
+    },
+    oddsWinAway: {
+        type: Number,
+        default: null
+    },
 }, {
     timestamps: true
 })

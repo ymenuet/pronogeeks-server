@@ -20,7 +20,7 @@ router.post("/signup", catchErrors(signupProcess));
 
 router.get("/logout", ensureLogin, logout);
 
-router.get('/currentuser', getCurrentUser)
+router.get('/profile', ensureLogin, getCurrentUser)
 
 router.put('/edit', ensureLogin, catchErrors(editProfileProcess))
 

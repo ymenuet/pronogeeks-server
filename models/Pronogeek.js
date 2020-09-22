@@ -8,9 +8,10 @@ const PronogeekSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    matchweek: {
+    matchweek: Number,
+    season: {
         type: Schema.Types.ObjectId,
-        ref: 'Matchweek'
+        ref: 'Season'
     },
     fixtures: [{
         fixture: {

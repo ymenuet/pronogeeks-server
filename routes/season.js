@@ -4,7 +4,10 @@ const router = express.Router();
 const {
     createSeason,
     updateSeason,
-    getSeason
+    getSeason,
+    getSeasons,
+    getSeasonsByCountry,
+    deleteSeason
 } = require('../controllers/season')
 
 const {
@@ -13,10 +16,16 @@ const {
     catchErrors
 } = require('../middlewares/index')
 
+router.get('/', catchErrors(getSeasons))
+
+router.get('/country/:countryCode', catchErrors(getSeasonsByCountry))
+
+router.get('/:seasonID', catchErrors(getSeason))
+
 router.post('/', ensureLogin, checkRole('SUPER GEEK'), catchErrors(createSeason))
 
 router.put('/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(updateSeason))
 
-router.get('/:seasonID', catchErrors(getSeason))
+router.delete('/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(deleteSeason))
 
 module.exports = router;

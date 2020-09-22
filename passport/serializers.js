@@ -6,9 +6,37 @@ passport.serializeUser((loggedInUser, cb) => {
 });
 
 passport.deserializeUser(async(userIdFromSession, cb) => {
-    const user = await User.findById(userIdFromSession).catch(err => {
-        cb(err);
-    })
+    const user = await User.findById(userIdFromSession)
+        // .populate({
+        //     path: 'geekLeagues',
+        //     model: 'GeekLeague'
+        // })
+        .populate({
+            path: 'friends',
+            model: 'User'
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'season',
+                model: 'Season'
+            },
+            //     populate: {
+            //         path: 'provisionalRanking',
+            //         model: 'Team'
+            //     },
+            //     populate: {
+            //         path: 'favTeam',
+            //         model: 'Team'
+            //     },
+            //     populate: {
+            //         path: 'pronogeeks',
+            //         model: 'Pronogeek'
+            //     },
+        })
+        .catch(err => {
+            cb(err);
+        })
     user.password = undefined
     cb(null, user);
 });

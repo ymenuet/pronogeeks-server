@@ -69,7 +69,9 @@ exports.loginProcess = async(req, res, next) => {
                 message: 'Session save went bad.'
             })
             user.password = undefined
-            res.status(200).json(user)
+            res.status(200).json({
+                user
+            })
         })
     })(req, res, next)
 }
@@ -82,19 +84,51 @@ exports.logout = (req, res) => {
 }
 
 exports.getCurrentUser = (req, res) => {
-    res.status(200).json(req.user)
+    res.status(200).json({
+        user: req.user
+    })
 }
 
 exports.editProfileProcess = async(req, res) => {
     const newProfile = req.body
     delete newProfile.role
     const user = await User.findByIdAndUpdate(req.user._id, newProfile, {
-        new: true
-    }).catch(err => {
-        res.status(500).json({
-            message: "Something went wrong"
-        });
-    })
+            new: true
+        })
+        // .populate({
+        //     path: 'geekLeagues',
+        //     model: 'GeekLeague'
+        // })
+        .populate({
+            path: 'friends',
+            model: 'User'
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'season',
+                model: 'Season'
+            },
+            // populate: {
+            //     path: 'provisionalRanking',
+            //     model: 'Team'
+            // },
+            // populate: {
+            //     path: 'favTeam',
+            //     model: 'Team'
+            // },
+            // populate: {
+            //     path: 'pronogeeks',
+            //     model: 'Pronogeek'
+            // },
+        })
+        .catch(err => {
+            res.status(500).json({
+                message: "Something went wrong"
+            });
+        })
     user.password = undefined
-    res.status(200).json(user)
+    res.status(200).json({
+        user
+    })
 }

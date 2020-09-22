@@ -1,0 +1,1 @@
+const Fixture = require('../models/Fixture')
