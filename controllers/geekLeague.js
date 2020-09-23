@@ -1,0 +1,1 @@
+const GeekLeague = require('../models/GeekLeague')

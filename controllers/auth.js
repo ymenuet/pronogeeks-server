@@ -17,8 +17,12 @@ exports.signupProcess = async(req, res, next) => {
     } = req.body
     let photo = req.body.photo
 
-    if (!username || !password || !email) return res.status(401).json({
-        message: "Please indicate correct email, username and password"
+    if (!username || !password || !email) return res.status(200).json({
+        status: 'fail',
+        message: {
+            en: "Please indicate correct email, username and password",
+            fr: `Merci de compléter les champs du pseudo, de l'email et du mot de passe.`
+        }
     })
 
     if (!photo) photo = 'https://res.cloudinary.com/dlyw9xi3k/image/upload/v1600628381/Pronogeeks/default-profile-pic.png'
@@ -27,16 +31,24 @@ exports.signupProcess = async(req, res, next) => {
         email
     })
 
-    if (user) return res.status(401).json({
-        message: 'Something went wrong. Try again or try logging in directly.'
+    if (user) return res.status(200).json({
+        status: 'fail',
+        message: {
+            en: 'Something went wrong. Try again with another email.',
+            fr: `Échec lors de la création du compte. Essaye peut-être avec un autre email.`
+        }
     })
 
     const usernameExists = await User.findOne({
         username
     })
 
-    if (usernameExists) return res.status(401).json({
-        message: 'This username already exists. Please choose another one.'
+    if (usernameExists) return res.status(200).json({
+        status: 'fail',
+        message: {
+            en: "Please indicate a unique username.",
+            fr: "Ce pseudo est déjà utilisé, trouves-en un plus original !"
+        }
     })
 
     const hashPass = hashSync(password, genSaltSync(bcryptSalt));
@@ -47,11 +59,18 @@ exports.signupProcess = async(req, res, next) => {
         photo,
         password: hashPass
     }).catch(err => res.status(500).json({
-        message: 'Something went wrong'
+        message: {
+            en: 'Something went wrong in the server.',
+            fr: `Il y a eu un problème du côté du server.`
+        }
     }))
 
     res.status(200).json({
-        message: 'User created successfully'
+        status: 'OK',
+        message: {
+            en: 'User created successfully.',
+            fr: `Nouvel utilisateur créé.`
+        }
     })
 
 }
@@ -59,14 +78,20 @@ exports.signupProcess = async(req, res, next) => {
 exports.loginProcess = async(req, res, next) => {
     passport.authenticate('local', (err, user, failureDetails) => {
         if (err) return res.status(500).json({
-            message: 'Something went wrong with the authentication'
+            message: {
+                en: 'Something went wrong with the authentication.',
+                fr: `Il y a eu un problème lors de l'authentification.`
+            }
         })
 
         if (!user) return res.status(401).json(failureDetails)
 
         req.login(user, err => {
             if (err) return res.status(500).json({
-                message: 'Session save went bad.'
+                message: {
+                    en: 'Session save went bad.',
+                    fr: 'La sauvegarde de la session a échoué.'
+                }
             })
             user.password = undefined
             res.status(200).json({
@@ -79,7 +104,10 @@ exports.loginProcess = async(req, res, next) => {
 exports.logout = (req, res) => {
     req.logout()
     res.status(200).json({
-        message: 'User logged out'
+        message: {
+            en: 'User logged out.',
+            fr: 'Utilisateur déconnecté.'
+        }
     })
 }
 
@@ -90,9 +118,29 @@ exports.getCurrentUser = (req, res) => {
 }
 
 exports.editProfileProcess = async(req, res) => {
-    const newProfile = req.body
-    delete newProfile.role
-    const user = await User.findByIdAndUpdate(req.user._id, newProfile, {
+    const {
+        username,
+        photo
+    } = req.body
+    if (!username) return res.status(401).json({
+        message: {
+            en: "Please indicate a username",
+            fr: "Tu ne peux pas sauvegarder ton profil sans pseudo."
+        }
+    })
+    const existingUsername = User.findOne({
+        username
+    })
+    if (existingUsername) return res.status(401).json({
+        message: {
+            en: "Please indicate a unique username",
+            fr: "Ce pseudo est déjà utilisé, trouves-en un autre !"
+        }
+    })
+    const user = await User.findByIdAndUpdate(req.user._id, {
+            username,
+            photo
+        }, {
             new: true
         })
         // .populate({
@@ -124,7 +172,10 @@ exports.editProfileProcess = async(req, res) => {
         })
         .catch(err => {
             res.status(500).json({
-                message: "Something went wrong"
+                message: {
+                    en: 'Something went wrong in the server.',
+                    fr: `Il y a eu un problème du côté du server.`
+                }
             });
         })
     user.password = undefined

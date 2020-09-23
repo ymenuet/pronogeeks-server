@@ -42,6 +42,9 @@ exports.updateSeason = async(req, res) => {
 exports.deleteSeason = async(req, res) => {
     await Season.findByIdAndDelete(req.params.seasonID)
     res.status(200).json({
-        message: 'Season deleted'
+        message: {
+            en: 'Season deleted',
+            fr: 'Saison supprimée'
+        }
     })
 }

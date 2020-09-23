@@ -39,7 +39,8 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cookieParser());
 app.use(cors({
-    origin: ['http://localhost:3001']
+    origin: [process.env.FRONTENDPOINT],
+    credentials: true
 }))
 
 // Express View engine setup
@@ -77,8 +78,12 @@ app.use(session({
     secret: process.env.SECRET,
     resave: true,
     saveUninitialized: true,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    },
     store: new MongoStore({
-        mongooseConnection: mongoose.connection
+        mongooseConnection: mongoose.connection,
+        ttl: 60 * 60 * 24 * 7 * 30
     })
 }))
 app.use(flash());
