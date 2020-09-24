@@ -4,10 +4,12 @@ const router = express.Router();
 const {
     catchErrors,
     ensureLogin,
-    checkRole
 } = require('../middlewares')
 
-const {} = require('../controllers/fixture')
+const {
+    getFixture
+} = require('../controllers/fixture')
 
+router.get('/:fixtureID', ensureLogin, catchErrors(getFixture))
 
 module.exports = router;

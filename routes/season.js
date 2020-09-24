@@ -5,6 +5,7 @@ const {
     createSeason,
     updateSeason,
     getSeason,
+    getMatchweek,
     getSeasons,
     getSeasonsByCountry,
     deleteSeason
@@ -21,6 +22,8 @@ router.get('/', catchErrors(getSeasons))
 router.get('/country/:countryCode', catchErrors(getSeasonsByCountry))
 
 router.get('/:seasonID', catchErrors(getSeason))
+
+router.get('/:seasonID/:matchweekNumber', catchErrors(getMatchweek))
 
 router.post('/', ensureLogin, checkRole('SUPER GEEK'), catchErrors(createSeason))
 

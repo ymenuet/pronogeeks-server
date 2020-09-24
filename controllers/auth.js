@@ -17,8 +17,7 @@ exports.signupProcess = async(req, res, next) => {
     } = req.body
     let photo = req.body.photo
 
-    if (!username || !password || !email) return res.status(200).json({
-        status: 'fail',
+    if (!username || !password || !email) return res.status(401).json({
         message: {
             en: "Please indicate correct email, username and password",
             fr: `Merci de compléter les champs du pseudo, de l'email et du mot de passe.`
@@ -31,8 +30,7 @@ exports.signupProcess = async(req, res, next) => {
         email
     })
 
-    if (user) return res.status(200).json({
-        status: 'fail',
+    if (user) return res.status(401).json({
         message: {
             en: 'Something went wrong. Try again with another email.',
             fr: `Échec lors de la création du compte. Essaye peut-être avec un autre email.`
@@ -43,8 +41,7 @@ exports.signupProcess = async(req, res, next) => {
         username
     })
 
-    if (usernameExists) return res.status(200).json({
-        status: 'fail',
+    if (usernameExists) return res.status(401).json({
         message: {
             en: "Please indicate a unique username.",
             fr: "Ce pseudo est déjà utilisé, trouves-en un plus original !"
@@ -66,7 +63,6 @@ exports.signupProcess = async(req, res, next) => {
     }))
 
     res.status(200).json({
-        status: 'OK',
         message: {
             en: 'User created successfully.',
             fr: `Nouvel utilisateur créé.`
@@ -112,13 +108,8 @@ exports.logout = (req, res) => {
 }
 
 exports.getCurrentUser = (req, res) => {
-    req.user ? res.status(200).json({
+    res.status(200).json({
         user: req.user
-    }) : res.status(200).json({
-        message: {
-            en: 'No user in session.',
-            fr: 'Aucun utilisateur connecté.'
-        }
     })
 }
 

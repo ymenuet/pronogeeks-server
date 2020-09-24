@@ -17,9 +17,40 @@ exports.getSeasonsByCountry = async(req, res) => {
 }
 
 exports.getSeason = async(req, res) => {
-    const season = await Season.findById(req.params.seasonID)
+    const season = await Season.findById(req.params.seasonID).populate({
+        path: 'fixtures',
+        model: 'Fixture'
+    })
     res.status(200).json({
         season
+    })
+}
+
+exports.getMatchweek = async(req, res) => {
+    const season = await Season.findById(req.params.seasonID)
+        .populate({
+            path: 'fixtures',
+            model: 'Fixture',
+            options: {
+                sort: {
+                    date: -1
+                }
+            },
+            populate: {
+                path: 'awayTeam',
+                model: 'Team'
+            }
+        })
+        .populate({
+            path: 'fixtures',
+            populate: {
+                path: 'homeTeam',
+                model: 'Team'
+            }
+        })
+    const fixtures = season.fixtures.filter(fixture => fixture.matchweek == req.params.matchweekNumber)
+    res.status(200).json({
+        fixtures
     })
 }
 
