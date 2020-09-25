@@ -2,6 +2,8 @@ const axios = require('axios')
 const Team = require('../models/Team')
 const Season = require('../models/Season')
 const Fixture = require('../models/Fixture')
+const User = require('../models/User')
+const Pronogeek = require('../models/Pronogeek')
 
 exports.fetchAllSeasonTeamsFromApi = async(req, res) => {
     const {
@@ -78,6 +80,10 @@ exports.fetchSeasonRankingFromApi = async(req, res) => {
     })
 }
 
+// The function below goes to fetch the updated scores and status of the games of a specific season and matchweek.
+// Once it has the results, it updates the games that where not up-to-date yet.
+// Then, it updates the pronogeeks of every game that changed status, with the points and bonus points.
+// And to finish, it updates all the profiles of the users that had bet on the updated games
 exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
     const {
         seasonID,
@@ -86,7 +92,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
     const season = await Season.findById(seasonID)
     const leagueID = season.apiLeagueID
 
-    // Cancel fetch if matches already finished
+    // Cancel fetch if all matches already finished
     const matchweekFixtures = await Fixture.find({
         matchweek: matchweekNumber
     })
@@ -154,6 +160,169 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         }, {
             new: true
         })
+        if (updatedFixture.statusShort !== 'TBD' &&
+            updatedFixture.statusShort !== 'NS' &&
+            updatedFixture.statusShort !== '1H' &&
+            updatedFixture.statusShort !== 'HT' &&
+            updatedFixture.statusShort !== '2H' &&
+            updatedFixture.statusShort !== 'ET' &&
+            updatedFixture.statusShort !== 'P' &&
+            updatedFixture.statusShort !== 'BT' &&
+            updatedFixture.statusShort !== 'SUSP' &&
+            updatedFixture.statusShort !== 'INT' &&
+            updatedFixture.statusShort !== 'PST') {
+            const userIDs = []
+            const pronogeeks = await Pronogeek.find({
+                    fixture: updatedFixture._id
+                })
+                .populate({
+                    path: 'fixture',
+                    model: 'Fixture'
+                })
+                .populate({
+                    path: 'fixture',
+                    populate: {
+                        path: 'homeTeam',
+                        model: 'Team'
+                    }
+                })
+                .populate({
+                    path: 'fixture',
+                    populate: {
+                        path: 'awayTeam',
+                        model: 'Team'
+                    }
+                })
+                .populate({
+                    path: 'geek',
+                    model: 'User'
+                })
+                .populate({
+                    path: 'geek',
+                    populate: {
+                        path: 'seasons',
+                        populate: {
+                            path: 'season',
+                            model: 'Season'
+                        }
+                    }
+                })
+                .populate({
+                    path: 'geek',
+                    populate: {
+                        path: 'seasons',
+                        populate: {
+                            path: 'favTeam',
+                            model: 'Team'
+                        }
+                    }
+                })
+                .populate({
+                    path: 'geek',
+                    populate: {
+                        path: 'seasons',
+                        populate: {
+                            path: 'matchweek',
+                            populate: {
+                                path: 'pronogeeks',
+                                model: 'Pronogeek'
+                            }
+                        }
+                    }
+                })
+            pronogeeks.forEach(pronogeek => {
+                if (pronogeek.winner === winner) {
+                    userIDs.push(pronogeek.geek._id)
+                    pronogeek.correct = true
+                    pronogeek.points = pronogeek.potentialPoints
+                    if (pronogeek.homeProno == updatedFixture.goalHomeTeam && pronogeek.awayProno == updatedFixture.goalsAwayTeam) {
+                        pronogeek.exact = true
+                        pronogeek.points = pronogeek.potentialPoint * 2
+                    }
+
+                    // add 30point bonus if good pronostic on favorite team game
+                    const userSeason = pronogeek.geek.seasons.filter(season => season.season._id.toString() == pronogeek.season.toString())[0]
+                    const userFavTeam = userSeason.favTeam.name
+                    if (userFavTeam.toString() == pronogeek.fixture.homeTeam.name.toString() || userFavTeam.toString() == pronogeek.fixture.awayTeam.name.toString()) {
+                        pronogeek.bonusFavTeam = true
+                        pronogeek.points += 30
+                    }
+                }
+                pronogeek.save()
+            })
+            const userProfiles = await Promise.all(userIDs.map(async userID => {
+                const user = await User.findOne({
+                        _id: userID
+                    })
+                    .populate({
+                        path: 'seasons',
+                        populate: {
+                            path: 'season',
+                            model: 'Season'
+                        }
+                    })
+                    .populate({
+                        path: 'seasons',
+                        populate: {
+                            path: 'matchweeks',
+                            populate: {
+                                path: 'pronogeeks',
+                                model: 'Pronogeek'
+                            }
+                        }
+                    })
+                console.log(user)
+                let seasonIndex;
+                user.seasons.forEach((season, i) => {
+                    if (season.season._id.toString() == seasonID) seasonIndex = i
+                })
+                let matchweekIndex;
+                user.seasons[seasonIndex].matchweeks.forEach((matchweek, i) => {
+                    if (matchweek.number.toString() == matchweekNumber) matchweekIndex = i
+                })
+                let matchweekPoints = 0;
+                let numberCorrects = 0;
+                let bonusPoints = 0
+                user.seasons[seasonIndex].matchweeks[matchweekIndex].pronogeeks.forEach(pronogeek => {
+                    if (pronogeek.points) matchweekPoints += parseInt(pronogeek.points)
+                    if (pronogeek.correct) numberCorrects++
+                })
+                switch (numberCorrects) {
+                    case 5:
+                        bonusPoints = 50
+                        break;
+                    case 6:
+                        bonusPoints = 100
+                        break;
+                    case 7:
+                        bonusPoints = 200
+                        break;
+                    case 8:
+                        bonusPoints = 300
+                        break;
+                    case 9:
+                        bonusPoints = 500
+                        break;
+                    case 10:
+                        bonusPoints = 700
+                        break;
+                    default:
+                        bonusPoints = 0
+                }
+
+                // Update matchweek points on user profile
+                user.seasons[seasonIndex].matchweeks[matchweekIndex].points = parseInt(matchweekPoints)
+                user.seasons[seasonIndex].matchweeks[matchweekIndex].numberCorrects = parseInt(numberCorrects)
+                user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPoints)
+                user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
+
+                // Update season points on user profile
+                user.seasons[seasonIndex].totalPoints += parseInt(matchweekPoints + bonusPoints)
+
+                user.save()
+                return user
+            }))
+        }
         return updatedFixture
     }))
 
@@ -205,20 +374,12 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
             apiFixtureID: odd.fixture.fixture_id
         })
         const fixtureID = fixtureForStatus._id
-        if (fixtureForStatus.statusShort !== 'TBD' &&
-            fixtureForStatus.statusShort !== 'NS' &&
-            fixtureForStatus.statusShort !== '1H' &&
-            fixtureForStatus.statusShort !== 'HT' &&
-            fixtureForStatus.statusShort !== '2H' &&
-            fixtureForStatus.statusShort !== 'ET' &&
-            fixtureForStatus.statusShort !== 'P' &&
-            fixtureForStatus.statusShort !== 'BT' &&
-            fixtureForStatus.statusShort !== 'SUSP' &&
-            fixtureForStatus.statusShort !== 'INT' &&
-            fixtureForStatus.statusShort !== 'PST') return {
+
+        // Do not update if the game has already started so that it doesn't update with the latest odds that noone had time to see when saving their pronogeeks
+        if (new Date(fixtureForStatus.date).getTime() - Date.now() < 0) return {
             message: {
-                en: `The odds of the fixture with ID ${fixtureID} were not updated since the game is already finished.`,
-                fr: `Les cotes du match d'ID ${fixtureID} n'ont pas été mis à jour car le match est déjà fini.`
+                en: `The odds of the fixture with ID ${fixtureID} were not updated since the game has already started or finished.`,
+                fr: `Les cotes du match d'ID ${fixtureID} n'ont pas été mis à jour car le match a déjà commencé ou est dejà fini.`
             }
         }
 

@@ -36,6 +36,10 @@ exports.newProno = async(req, res) => {
         awayProno > homeProno ? fixture.awayTeam.name :
         awayProno === homeProno ? 'Draw' :
         null
+    const potentialPoints = homeProno > awayProno ? parseInt(fixture.oddsWinHome) :
+        awayProno > homeProno ? parseInt(fixture.oddsWinAway) :
+        awayProno === homeProno ? parseInt(fixture.oddsDraw) :
+        0
     const pronogeekExists = await Pronogeek.findOne({
         fixture: fixtureID,
         geek: req.user._id
@@ -54,7 +58,8 @@ exports.newProno = async(req, res) => {
             fixture: fixtureID,
             homeProno,
             awayProno,
-            winner
+            winner,
+            potentialPoints
         }).catch(err => res.status(500).json({
             message: {
                 en: 'Error while saving the pronostics. Check if the values are numbers.',
@@ -94,7 +99,10 @@ exports.saveProno = async(req, res) => {
     const pronogeekWithTeams = await Pronogeek.findById(req.params.pronogeekID)
         .populate({
             path: 'fixture',
-            model: 'Fixture',
+            model: 'Fixture'
+        })
+        .populate({
+            path: 'fixture',
             populate: {
                 path: 'homeTeam',
                 model: 'Team'
@@ -102,7 +110,6 @@ exports.saveProno = async(req, res) => {
         })
         .populate({
             path: 'fixture',
-            model: 'Fixture',
             populate: {
                 path: 'awayTeam',
                 model: 'Team'
@@ -112,10 +119,15 @@ exports.saveProno = async(req, res) => {
         awayProno > homeProno ? pronogeekWithTeams.fixture.awayTeam.name :
         awayProno === homeProno ? 'Draw' :
         null
+    const potentialPoints = homeProno > awayProno ? parseInt(pronogeekWithTeams.fixture.oddsWinHome) :
+        awayProno > homeProno ? parseInt(pronogeekWithTeams.fixture.oddsWinAway) :
+        awayProno === homeProno ? parseInt(pronogeekWithTeams.fixture.oddsDraw) :
+        0
     const pronogeek = await Pronogeek.findByIdAndUpdate(req.params.pronogeekID, {
         homeProno,
         awayProno,
-        winner
+        winner,
+        potentialPoints
     }, {
         new: true
     }).catch(err => res.status(500).json({

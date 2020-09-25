@@ -49,6 +49,7 @@ passport.deserializeUser((userIdFromSession, cb) => {
         //     model: 'GeekLeague'
         // })
         .then(userDocument => {
+            if (userDocument.password) userDocument.password = undefined
             cb(null, userDocument);
         })
         .catch(err => {

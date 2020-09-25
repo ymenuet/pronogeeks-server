@@ -141,10 +141,6 @@ exports.editProfileProcess = async(req, res) => {
         }, {
             new: true
         })
-        // .populate({
-        //     path: 'geekLeagues',
-        //     model: 'GeekLeague'
-        // })
         .populate({
             path: 'friends',
             model: 'User'
@@ -154,19 +150,31 @@ exports.editProfileProcess = async(req, res) => {
             populate: {
                 path: 'season',
                 model: 'Season'
-            },
-            // populate: {
-            //     path: 'provisionalRanking',
-            //     model: 'Team'
-            // },
-            // populate: {
-            //     path: 'favTeam',
-            //     model: 'Team'
-            // },
-            // populate: {
-            //     path: 'pronogeeks',
-            //     model: 'Pronogeek'
-            // },
+            }
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'matchweeks',
+                populate: {
+                    path: 'pronogeeks',
+                    model: 'Pronogeek'
+                }
+            }
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'provisionalRanking',
+                model: 'Team'
+            }
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'favTeam',
+                model: 'Team'
+            }
         })
         .catch(err => {
             res.status(500).json({

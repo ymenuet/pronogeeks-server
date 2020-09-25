@@ -26,11 +26,19 @@ const PronogeekSchema = new Schema({
         default: null
     },
     winner: String,
+    potentialPoints: {
+        type: Number,
+        default: 0
+    },
     correct: {
         type: Boolean,
         default: false
     },
     exact: {
+        type: Boolean,
+        default: false
+    },
+    bonusFavTeam: {
         type: Boolean,
         default: false
     },

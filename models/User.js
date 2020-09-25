@@ -59,6 +59,10 @@ const UserSchema = new Schema({
                 type: Number,
                 default: 0
             },
+            numberCorrects: {
+                type: Number,
+                default: 0
+            },
             bonusPoints: {
                 type: Number,
                 default: 0
