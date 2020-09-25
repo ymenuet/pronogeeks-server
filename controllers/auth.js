@@ -51,8 +51,6 @@ exports.signupProcess = async(req, res, next) => {
 
     const hashPass = hashSync(password, genSaltSync(bcryptSalt));
 
-    const season = await Season.findById('5f67f525d7b14148997ee3eb')
-
     await User.create({
         email,
         username,
@@ -60,14 +58,10 @@ exports.signupProcess = async(req, res, next) => {
         password: hashPass,
         geekLeagues: [],
         friends: [],
-        seasons: [{
-            season: '5f67f525d7b14148997ee3eb',
-            provisionalRanking: season.rankedTeams,
-            pronogeeks: []
-        }]
+        seasons: []
     }).catch(err => res.status(500).json({
         message: {
-            en: 'Something went wrong in the server.',
+            en: 'Something went wrong on the server side.',
             fr: `Il y a eu un problème du côté du server.`
         }
     }))
@@ -100,9 +94,7 @@ exports.loginProcess = async(req, res, next) => {
                 }
             })
             user.password = undefined
-            res.status(200).json({
-                user
-            })
+            res.status(200).json(user)
         })
     })(req, res, next)
 }

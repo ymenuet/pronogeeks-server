@@ -2,15 +2,13 @@ const passport = require('passport');
 const User = require('../models/User');
 
 passport.serializeUser((loggedInUser, cb) => {
-    cb(null, loggedInUser.id);
+    cb(null, loggedInUser._id);
 });
 
-passport.deserializeUser(async(userIdFromSession, cb) => {
-    const user = await User.findById(userIdFromSession)
-        // .populate({
-        //     path: 'geekLeagues',
-        //     model: 'GeekLeague'
-        // })
+passport.deserializeUser((userIdFromSession, cb) => {
+    User.findOne({
+            _id: userIdFromSession
+        })
         .populate({
             path: 'friends',
             model: 'User'
@@ -25,21 +23,35 @@ passport.deserializeUser(async(userIdFromSession, cb) => {
         .populate({
             path: 'seasons',
             populate: {
-                path: 'pronogeeks',
-                model: 'Pronogeek'
+                path: 'matchweeks',
+                populate: {
+                    path: 'pronogeeks',
+                    model: 'Pronogeek'
+                }
             }
         })
-        //     populate: {
-        //         path: 'provisionalRanking',
-        //         model: 'Team'
-        //     },
-        //     populate: {
-        //         path: 'favTeam',
-        //         model: 'Team'
-        //     },
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'provisionalRanking',
+                model: 'Team'
+            }
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'favTeam',
+                model: 'Team'
+            }
+        })
+        // .populate({
+        //     path: 'geekLeagues',
+        //     model: 'GeekLeague'
+        // })
+        .then(userDocument => {
+            cb(null, userDocument);
+        })
         .catch(err => {
             cb(err);
         })
-    user.password = undefined
-    cb(null, user);
 });

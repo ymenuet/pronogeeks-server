@@ -49,9 +49,24 @@ const UserSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'Team'
         },
-        pronogeeks: [{
-            type: Schema.Types.ObjectId,
-            ref: 'Pronogeek'
+        matchweeks: [{
+            pronogeeks: [{
+                type: Schema.Types.ObjectId,
+                ref: 'Pronogeek'
+            }],
+            number: Number,
+            points: {
+                type: Number,
+                default: 0
+            },
+            bonusPoints: {
+                type: Number,
+                default: 0
+            },
+            totalPoints: {
+                type: Number,
+                default: 0
+            },
         }]
     }]
 }, {
