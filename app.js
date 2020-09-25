@@ -95,8 +95,8 @@ app.use('/api', require('./routes/index'));
 app.use('/api/seasons', require('./routes/season'))
 app.use('/api/fixtures', require('./routes/fixture'))
 app.use('/api/teams', require('./routes/team'))
-    // app.use('/geekleagues', require('./routes/geekLeague'))
-    // app.use('/pronogeeks', require('./routes/pronogeek'))
+app.use('/api/pronogeeks', require('./routes/pronogeek'))
+    // app.use('/api/geekleagues', require('./routes/geekLeague'))
 app.use('/api/fetch', require('./routes/apiFetch'))
 
 

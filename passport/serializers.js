@@ -20,20 +20,23 @@ passport.deserializeUser(async(userIdFromSession, cb) => {
             populate: {
                 path: 'season',
                 model: 'Season'
-            },
-            //     populate: {
-            //         path: 'provisionalRanking',
-            //         model: 'Team'
-            //     },
-            //     populate: {
-            //         path: 'favTeam',
-            //         model: 'Team'
-            //     },
-            // populate: {
-            //     path: 'pronogeeks',
-            //     model: 'Pronogeek'
-            // },
+            }
         })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'pronogeeks',
+                model: 'Pronogeek'
+            }
+        })
+        //     populate: {
+        //         path: 'provisionalRanking',
+        //         model: 'Team'
+        //     },
+        //     populate: {
+        //         path: 'favTeam',
+        //         model: 'Team'
+        //     },
         .catch(err => {
             cb(err);
         })

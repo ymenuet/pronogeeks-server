@@ -6,6 +6,16 @@ const {
     catchErrors
 } = require('../middlewares')
 
-const {} = require('../controllers/pronogeeks')
+const {
+    getProno,
+    newProno,
+    saveProno
+} = require('../controllers/pronogeeks')
+
+router.get('/:fixtureID', ensureLogin, catchErrors(getProno))
+
+router.post('/:fixtureID', ensureLogin, catchErrors(newProno))
+
+router.put('/:pronogeekID', ensureLogin, catchErrors(saveProno))
 
 module.exports = router;
