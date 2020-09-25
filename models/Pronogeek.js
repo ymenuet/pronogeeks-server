@@ -13,29 +13,31 @@ const PronogeekSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Season'
     },
-    fixtures: [{
-        fixture: {
-            type: Schema.Types.ObjectId,
-            ref: 'Fixture'
-        },
-        scoreProno: {
-            home: Number,
-            away: Number
-        },
-        winner: String,
-        correct: {
-            type: Boolean,
-            default: false
-        },
-        exact: {
-            type: Boolean,
-            default: false
-        },
-        points: {
-            type: Number,
-            default: 0
-        }
-    }],
+    fixture: {
+        type: Schema.Types.ObjectId,
+        ref: 'Fixture'
+    },
+    homeProno: {
+        type: Number,
+        default: null
+    },
+    awayProno: {
+        type: Number,
+        default: null
+    },
+    winner: String,
+    correct: {
+        type: Boolean,
+        default: false
+    },
+    exact: {
+        type: Boolean,
+        default: false
+    },
+    points: {
+        type: Number,
+        default: 0
+    },
     bonusPoints: {
         type: Number,
         default: 0

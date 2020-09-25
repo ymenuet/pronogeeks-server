@@ -205,16 +205,26 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
             apiFixtureID: odd.fixture.fixture_id
         })
         const fixtureID = fixtureForStatus._id
-        if (fixtureForStatus.statusShort !== 'TBD' || 'NS' || '1H' || 'HT' || '2H' || 'ET' || 'P' || 'BT' || 'SUSP' || 'INT' || 'PST') return {
+        if (fixtureForStatus.statusShort !== 'TBD' &&
+            fixtureForStatus.statusShort !== 'NS' &&
+            fixtureForStatus.statusShort !== '1H' &&
+            fixtureForStatus.statusShort !== 'HT' &&
+            fixtureForStatus.statusShort !== '2H' &&
+            fixtureForStatus.statusShort !== 'ET' &&
+            fixtureForStatus.statusShort !== 'P' &&
+            fixtureForStatus.statusShort !== 'BT' &&
+            fixtureForStatus.statusShort !== 'SUSP' &&
+            fixtureForStatus.statusShort !== 'INT' &&
+            fixtureForStatus.statusShort !== 'PST') return {
             message: {
                 en: `The odds of the fixture with ID ${fixtureID} were not updated since the game is already finished.`,
                 fr: `Les cotes du match d'ID ${fixtureID} n'ont pas été mis à jour car le match est déjà fini.`
             }
         }
 
-        const oddsWinHome = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd
-        const oddsDraw = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd
-        const oddsWinAway = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd
+        const oddsWinHome = Math.round(odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
+        const oddsDraw = Math.round(odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
+        const oddsWinAway = Math.round(odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
         const fixture = await Fixture.findOneAndUpdate({
             apiFixtureID: odd.fixture.fixture_id,
         }, {

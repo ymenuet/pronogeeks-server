@@ -1,5 +1,6 @@
 const passport = require('passport');
 const User = require("../models/User");
+const Season = require("../models/Season");
 
 // Bcrypt to encrypt passwords
 const {
@@ -50,11 +51,20 @@ exports.signupProcess = async(req, res, next) => {
 
     const hashPass = hashSync(password, genSaltSync(bcryptSalt));
 
+    const season = await Season.findById('5f67f525d7b14148997ee3eb')
+
     await User.create({
         email,
         username,
         photo,
-        password: hashPass
+        password: hashPass,
+        geekLeagues: [],
+        friends: [],
+        seasons: [{
+            season: '5f67f525d7b14148997ee3eb',
+            provisionalRanking: season.rankedTeams,
+            pronogeeks: []
+        }]
     }).catch(err => res.status(500).json({
         message: {
             en: 'Something went wrong in the server.',
