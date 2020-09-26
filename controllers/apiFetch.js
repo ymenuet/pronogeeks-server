@@ -242,7 +242,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
 
                     // add 30point bonus if good pronostic on favorite team game
                     const userSeason = pronogeek.geek.seasons.filter(season => season.season._id.toString() == pronogeek.season.toString())[0]
-                    const userFavTeam = userSeason.favTeam.name
+                    const userFavTeam = userSeason.favTeam ? userSeason.favTeam.name : ''
                     if (userFavTeam.toString() == pronogeek.fixture.homeTeam.name.toString() || userFavTeam.toString() == pronogeek.fixture.awayTeam.name.toString()) {
                         pronogeek.bonusFavTeam = true
                         pronogeek.points += 30
@@ -271,7 +271,6 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                             }
                         }
                     })
-                console.log(user)
                 let seasonIndex;
                 user.seasons.forEach((season, i) => {
                     if (season.season._id.toString() == seasonID) seasonIndex = i
