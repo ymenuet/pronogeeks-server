@@ -14,6 +14,10 @@ const FixtureSchema = new Schema({
     },
     apiFixtureID: String,
     date: Date,
+    timeElapsed: {
+        type: Number,
+        default: null
+    },
     homeTeam: {
         type: Schema.Types.ObjectId,
         ref: 'Team'

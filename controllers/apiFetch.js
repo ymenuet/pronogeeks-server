@@ -144,6 +144,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                 goalsHomeTeam === goalsAwayTeam ? winner = 'Draw' :
                 winner = null
         }
+        const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed
         const updatedFixture = await Fixture.findOneAndUpdate({
             apiFixtureID: fixture.fixture_id,
             season: seasonID
@@ -157,6 +158,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             winner,
             status: fixture.status,
             statusShort: fixture.statusShort,
+            timeElapsed
         }, {
             new: true
         })
@@ -382,9 +384,14 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
             }
         }
 
-        const oddsWinHome = Math.round(odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
-        const oddsDraw = Math.round(odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
-        const oddsWinAway = Math.round(odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)[0].bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
+        let unibetOdds = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)
+        if (unibetOdds.length > 0) unibetOdds = unibetOdds[0]
+        else unibetOdds = odd.bookmakers[0]
+
+        const oddsWinHome = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
+        const oddsDraw = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
+        const oddsWinAway = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
+
         const fixture = await Fixture.findOneAndUpdate({
             apiFixtureID: odd.fixture.fixture_id,
         }, {
@@ -398,6 +405,6 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
     }))
 
     res.status(200).json({
-        fixtureOdds
+        fixtures: fixtureOdds
     })
 }
