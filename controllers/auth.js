@@ -118,7 +118,6 @@ exports.getCurrentUser = (req, res) => {
 exports.editProfileProcess = async(req, res) => {
     const {
         username,
-        photo
     } = req.body
     if (!username) return res.status(401).json({
         message: {
@@ -137,7 +136,6 @@ exports.editProfileProcess = async(req, res) => {
     })
     const user = await User.findByIdAndUpdate(req.user._id, {
             username,
-            photo
         }, {
             new: true
         })
@@ -175,6 +173,29 @@ exports.editProfileProcess = async(req, res) => {
                 path: 'favTeam',
                 model: 'Team'
             }
+        })
+        .catch(err => {
+            res.status(500).json({
+                message: {
+                    en: 'Something went wrong in the server.',
+                    fr: `Il y a eu un problème du côté du server.`
+                }
+            });
+        })
+    user.password = undefined
+    res.status(200).json({
+        user
+    })
+}
+
+exports.editPhoto = async(req, res) => {
+    const {
+        photo
+    } = req.body
+    const user = await User.findByIdAndUpdate(req.user._id, {
+            photo,
+        }, {
+            new: true
         })
         .catch(err => {
             res.status(500).json({

@@ -6,7 +6,8 @@ const {
     loginProcess,
     editProfileProcess,
     logout,
-    getCurrentUser
+    getCurrentUser,
+    editPhoto
 } = require('../controllers/auth')
 
 const {
@@ -23,5 +24,7 @@ router.get("/logout", ensureLogin, logout);
 router.get('/profile', ensureLogin, getCurrentUser)
 
 router.put('/edit', ensureLogin, catchErrors(editProfileProcess))
+
+router.put('/editPic', ensureLogin, catchErrors(editPhoto))
 
 module.exports = router;
