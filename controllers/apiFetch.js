@@ -137,11 +137,11 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
 
         const goalsHomeTeam = fixture.goalsHomeTeam
         const goalsAwayTeam = fixture.goalsAwayTeam
-        let winner;
+        let winner = null;
         if (goalsHomeTeam >= 0 && goalsAwayTeam >= 0) {
             goalsHomeTeam > goalsAwayTeam ? winner = fixture.homeTeam.team_name :
                 goalsHomeTeam < goalsAwayTeam ? winner = fixture.awayTeam.team_name :
-                goalsHomeTeam === goalsAwayTeam ? winner = 'Draw' :
+                (goalsHomeTeam === goalsAwayTeam) ? winner = 'Draw' :
                 winner = null
         }
         const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed

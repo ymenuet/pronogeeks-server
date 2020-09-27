@@ -22,7 +22,7 @@ const UserSchema = new Schema({
     },
     photo: {
         type: String,
-        default: 'https://res.cloudinary.com/dlyw9xi3k/image/upload/v1600628381/Pronogeeks/default-profile-pic.png'
+        default: 'https://res.cloudinary.com/dlyw9xi3k/image/upload/v1601160365/pronogeeks/default-profile-pic.jpg'
     },
     geekLeagues: [{
         type: Schema.Types.ObjectId,

@@ -25,7 +25,7 @@ exports.signupProcess = async(req, res, next) => {
         }
     })
 
-    if (!photo) photo = 'https://res.cloudinary.com/dlyw9xi3k/image/upload/v1600628381/Pronogeeks/default-profile-pic.png'
+    if (!photo) photo = 'https://res.cloudinary.com/dlyw9xi3k/image/upload/v1601160365/pronogeeks/default-profile-pic.jpg'
 
     const user = await User.findOne({
         email
