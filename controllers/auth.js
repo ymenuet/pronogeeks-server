@@ -117,7 +117,7 @@ exports.getCurrentUser = (req, res) => {
 
 exports.editProfileProcess = async(req, res) => {
     const {
-        username,
+        username
     } = req.body
     if (!username) return res.status(401).json({
         message: {
@@ -125,54 +125,19 @@ exports.editProfileProcess = async(req, res) => {
             fr: "Tu ne peux pas sauvegarder ton profil sans pseudo."
         }
     })
-    const existingUsername = User.findOne({
+    const existingUsername = await User.findOne({
         username
     })
     if (existingUsername) return res.status(401).json({
         message: {
             en: "Please indicate a unique username",
-            fr: "Ce pseudo est déjà utilisé, trouves-en un autre !"
+            fr: "Ce pseudo est déjà utilisé, trouves-en un plus original !"
         }
     })
     const user = await User.findByIdAndUpdate(req.user._id, {
             username,
         }, {
             new: true
-        })
-        .populate({
-            path: 'friends',
-            model: 'User'
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
-                path: 'season',
-                model: 'Season'
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
-                path: 'matchweeks',
-                populate: {
-                    path: 'pronogeeks',
-                    model: 'Pronogeek'
-                }
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
-                path: 'provisionalRanking',
-                model: 'Team'
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
-                path: 'favTeam',
-                model: 'Team'
-            }
         })
         .catch(err => {
             res.status(500).json({

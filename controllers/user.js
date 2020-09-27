@@ -13,8 +13,11 @@ exports.getSeason = async(req, res) => {
     let seasonExists = user.seasons.filter(seas => seas.season.toString() === seasonID)
     if (seasonExists.length > 0) {
         seasonExists = seasonExists[0]
-        return res.status(200).json({
-            season: seasonExists
+        if (!seasonExists.favTeam) return res.status(200).json({
+            newSeason: true
+        })
+        else return res.status(200).json({
+            newSeason: false
         })
     } else if (seasonExists.length < 1) {
         const newSeason = {
@@ -26,7 +29,7 @@ exports.getSeason = async(req, res) => {
         user.seasons.push(newSeason)
         user.save()
         return res.status(200).json({
-            season: newSeason
+            newSeason: true
         })
     }
 }
@@ -75,4 +78,30 @@ exports.getMatchweek = async(req, res) => {
             })
         }
     }
+}
+
+exports.saveFavTeam = async(req, res) => {
+    const {
+        seasonID
+    } = req.params
+    const {
+        favTeam
+    } = req.body
+    const user = await User.findOne({
+        _id: req.user._id
+    })
+    let seasonIndex;
+    user.seasons.forEach((seas, i) => {
+        if (seas.season.toString() === seasonID) {
+            seasonIndex = i
+        }
+    })
+    user.seasons[seasonIndex].favTeam = favTeam
+    user.save()
+    res.status(200).json({
+        message: {
+            en: 'Favorite team saved.',
+            fr: 'Équipe de coeur enregistrée.'
+        }
+    })
 }

@@ -8,11 +8,14 @@ const {
 
 const {
     getSeason,
-    getMatchweek
+    getMatchweek,
+    saveFavTeam
 } = require('../controllers/user')
 
 router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
 
 router.get('/:seasonID/:matchweekNumber', ensureLogin, catchErrors(getMatchweek))
+
+router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
 
 module.exports = router;
