@@ -1,6 +1,17 @@
 const User = require('../models/User')
 const Season = require('../models/Season')
 
+exports.getUsers = async(req, res) => {
+    const users = await User.find(null, null, {
+        sort: {
+            username: 1
+        }
+    })
+    res.status(200).json({
+        users
+    })
+}
+
 exports.getSeason = async(req, res) => {
     const {
         seasonID
