@@ -54,7 +54,7 @@ app.use(require('node-sass-middleware')({
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public/build')));
 app.use(favicon(path.join(__dirname, 'public', 'images', 'favicon.ico')));
 
 
@@ -99,6 +99,10 @@ app.use('/api/pronogeeks', require('./routes/pronogeek'))
 app.use('/api/user', require('./routes/user'))
 app.use('/api/geekleagues', require('./routes/geekLeague'))
 app.use('/api/fetch', require('./routes/apiFetch'))
+
+app.use('/*', (req, res) => {
+    res.sendFile(`${__dirname}/public/build/index.html`)
+})
 
 
 module.exports = app;
