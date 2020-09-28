@@ -97,7 +97,7 @@ app.use('/api/fixtures', require('./routes/fixture'))
 app.use('/api/teams', require('./routes/team'))
 app.use('/api/pronogeeks', require('./routes/pronogeek'))
 app.use('/api/user', require('./routes/user'))
-    // app.use('/api/geekleagues', require('./routes/geekLeague'))
+app.use('/api/geekleagues', require('./routes/geekLeague'))
 app.use('/api/fetch', require('./routes/apiFetch'))
 
 

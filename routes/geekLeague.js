@@ -6,6 +6,10 @@ const {
     catchErrors
 } = require('../middlewares')
 
-const {} = require('../controllers/geekLeague')
+const {
+    newLeagueProcess
+} = require('../controllers/geekLeague')
+
+router.post('/', ensureLogin, catchErrors(newLeagueProcess))
 
 module.exports = router;

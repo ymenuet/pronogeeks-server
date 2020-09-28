@@ -10,24 +10,12 @@ const GeekLeagueSchema = new Schema({
         ref: 'User'
     },
     geeks: [{
-        geek: {
-            type: Schema.Types.ObjectId,
-            ref: 'User'
-        },
-        initialPoints: {
-            type: Number,
-            default: 0
-        }
+        type: Schema.Types.ObjectId,
+        ref: 'User'
     }],
     seasons: [{
-        season: {
-            type: Schema.Types.ObjectId,
-            ref: 'Season'
-        },
-        ranking: [{
-            type: Schema.Types.ObjectId,
-            ref: 'User'
-        }]
+        type: Schema.Types.ObjectId,
+        ref: 'Season'
     }]
 }, {
     timestamps: true
