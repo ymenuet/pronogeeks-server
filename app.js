@@ -100,9 +100,9 @@ app.use('/api/user', require('./routes/user'))
 app.use('/api/geekleagues', require('./routes/geekLeague'))
 app.use('/api/fetch', require('./routes/apiFetch'))
 
-app.use('/*', (req, res) => {
-    res.sendFile(`${__dirname}/public/build/index.html`)
-})
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/build/index.html'));
+});
 
 
 module.exports = app;
