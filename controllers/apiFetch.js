@@ -233,7 +233,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                     }
                 })
             pronogeeks.forEach(pronogeek => {
-                if (pronogeek.winner === winner) {
+                if (pronogeek.winner === winner && !pronogeek.addedToProfile) {
                     userIDs.push(pronogeek.geek._id)
                     pronogeek.correct = true
                     pronogeek.points = pronogeek.potentialPoints
@@ -250,9 +250,10 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                         pronogeek.points += 30
                     }
                 }
+                pronogeek.addedToProfile = true
                 pronogeek.save()
             })
-            const userProfiles = await Promise.all(userIDs.map(async userID => {
+            await Promise.all(userIDs.map(async userID => {
                 const user = await User.findOne({
                         _id: userID
                     })

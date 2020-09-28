@@ -80,6 +80,22 @@ exports.getMatchweek = async(req, res) => {
     }
 }
 
+exports.getPlayersSeason = async(req, res) => {
+    const {
+        seasonID
+    } = req.params
+    const users = await User.find({
+        seasons: {
+            $elemMatch: {
+                season: seasonID
+            }
+        }
+    })
+    res.status(200).json({
+        users
+    })
+}
+
 exports.saveFavTeam = async(req, res) => {
     const {
         seasonID

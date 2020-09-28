@@ -45,6 +45,10 @@ const PronogeekSchema = new Schema({
     points: {
         type: Number,
         default: 0
+    },
+    addedToProfile: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
