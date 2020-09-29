@@ -44,10 +44,17 @@ passport.deserializeUser((userIdFromSession, cb) => {
                 model: 'Team'
             }
         })
-        // .populate({
-        //     path: 'geekLeagues',
-        //     model: 'GeekLeague'
-        // })
+        .populate({
+            path: 'geekLeagues',
+            model: 'GeekLeague'
+        })
+        .populate({
+            path: 'geekLeagues',
+            populate: {
+                path: 'geeks',
+                model: 'User'
+            }
+        })
         .then(userDocument => {
             if (userDocument.password) userDocument.password = undefined
             cb(null, userDocument);

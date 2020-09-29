@@ -68,6 +68,13 @@ exports.getUserLeagues = async(req, res) => {
                 model: 'User'
             }
         })
+        .populate({
+            path: 'geekLeagues',
+            populate: {
+                path: 'creator',
+                model: 'User'
+            }
+        })
     res.status(200).json({
         geekLeagues: user.geekLeagues
     })

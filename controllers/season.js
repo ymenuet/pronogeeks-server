@@ -1,7 +1,11 @@
 const Season = require('../models/Season')
 
 exports.getSeasons = async(req, res) => {
-    const seasons = await Season.find()
+    const seasons = await Season.find(null, null, {
+        sort: {
+            startDate: -1
+        }
+    })
     res.status(200).json({
         seasons
     })
