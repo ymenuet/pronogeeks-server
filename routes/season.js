@@ -5,6 +5,7 @@ const {
     createSeason,
     updateSeason,
     getSeason,
+    getUndergoingSeasons,
     getMatchweek,
     getSeasons,
     getSeasonsByCountry,
@@ -18,6 +19,8 @@ const {
 } = require('../middlewares/index')
 
 router.get('/', catchErrors(getSeasons))
+
+router.get('/current', catchErrors(getUndergoingSeasons))
 
 router.get('/country/:countryCode', catchErrors(getSeasonsByCountry))
 

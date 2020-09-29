@@ -7,9 +7,15 @@ const {
 } = require('../middlewares')
 
 const {
-    newLeagueProcess
+    newLeagueProcess,
+    getLeague,
+    getUserLeagues
 } = require('../controllers/geekLeague')
 
 router.post('/', ensureLogin, catchErrors(newLeagueProcess))
+
+router.get('/:geekLeagueID', ensureLogin, catchErrors(getLeague))
+
+router.get('/', ensureLogin, catchErrors(getUserLeagues))
 
 module.exports = router;

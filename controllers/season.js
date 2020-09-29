@@ -36,6 +36,19 @@ exports.getSeason = async(req, res) => {
     })
 }
 
+exports.getUndergoingSeasons = async(req, res) => {
+    const seasons = await Season.find({
+        status: 'underway'
+    }, null, {
+        sort: {
+            startDate: -1
+        }
+    })
+    res.status(200).json({
+        seasons
+    })
+}
+
 exports.getMatchweek = async(req, res) => {
     const season = await Season.findById(req.params.seasonID)
         .populate({

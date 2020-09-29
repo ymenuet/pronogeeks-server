@@ -36,3 +36,39 @@ exports.newLeagueProcess = async(req, res) => {
         geekLeague
     })
 }
+
+exports.getLeague = async(req, res) => {
+    const {
+        geekLeagueID
+    } = req.params
+    const geekLeague = await GeekLeague.findById(geekLeagueID)
+        .populate({
+            path: 'geeks',
+            model: 'User'
+        })
+        .populate({
+            path: 'seasons',
+            model: 'Season'
+        })
+    res.status(200).json({
+        geekLeague
+    })
+}
+
+exports.getUserLeagues = async(req, res) => {
+    const user = await User.findById(req.user._id)
+        .populate({
+            path: 'geekLeagues',
+            model: 'GeekLeague'
+        })
+        .populate({
+            path: 'geekLeagues',
+            populate: {
+                path: 'geeks',
+                model: 'User'
+            }
+        })
+    res.status(200).json({
+        geekLeagues: user.geekLeagues
+    })
+}
