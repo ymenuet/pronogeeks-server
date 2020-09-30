@@ -141,8 +141,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         if (goalsHomeTeam >= 0 && goalsAwayTeam >= 0) {
             goalsHomeTeam > goalsAwayTeam ? winner = fixture.homeTeam.team_name :
                 goalsHomeTeam < goalsAwayTeam ? winner = fixture.awayTeam.team_name :
-                (goalsHomeTeam === goalsAwayTeam) ? winner = 'Draw' :
-                winner = null
+                winner = 'Draw'
         }
         const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed
         const updatedFixture = await Fixture.findOneAndUpdate({
@@ -236,10 +235,10 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                 if (pronogeek.winner === winner && !pronogeek.addedToProfile) {
                     userIDs.push(pronogeek.geek._id)
                     pronogeek.correct = true
-                    pronogeek.points = pronogeek.potentialPoints
-                    if (pronogeek.homeProno == updatedFixture.goalHomeTeam && pronogeek.awayProno == updatedFixture.goalsAwayTeam) {
+                    pronogeek.points = parseInt(pronogeek.potentialPoints)
+                    if (pronogeek.homeProno == updatedFixture.goalsHomeTeam && pronogeek.awayProno == updatedFixture.goalsAwayTeam) {
                         pronogeek.exact = true
-                        pronogeek.points = pronogeek.potentialPoint * 2
+                        pronogeek.points = parseInt(pronogeek.potentialPoints) * 2
                     }
 
                     // add 30point bonus if good pronostic on favorite team game
@@ -319,7 +318,9 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                 user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
 
                 // Update season points on user profile
-                user.seasons[seasonIndex].totalPoints += parseInt(matchweekPoints + bonusPoints)
+                let seasonPoints = 0;
+                user.seasons[seasonIndex].matchweeks.forEach(matchweek => seasonPoints += matchweek.totalPoints)
+                user.seasons[seasonIndex].totalPoints = seasonPoints
 
                 user.save()
                 return user
