@@ -6,6 +6,10 @@ const {
     loginProcess,
     editProfileProcess,
     logout,
+    facebookLogin,
+    facebookCallback,
+    googleLogin,
+    googleCallback,
     getCurrentUser,
     editPhoto
 } = require('../controllers/auth')
@@ -22,6 +26,12 @@ router.post("/signup", catchErrors(signupProcess));
 router.get("/logout", ensureLogin, logout);
 
 router.get('/profile', ensureLogin, getCurrentUser)
+
+router.get('/facebook', facebookLogin)
+router.get('/facebook/callback', facebookCallback)
+
+router.get('/google', googleLogin)
+router.get('/google/callback', googleCallback)
 
 router.put('/edit', ensureLogin, catchErrors(editProfileProcess))
 
