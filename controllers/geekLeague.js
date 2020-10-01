@@ -55,6 +55,34 @@ exports.getLeague = async(req, res) => {
     })
 }
 
+exports.getMatchweekRanking = async(req, res) => {
+    const {
+        geekLeagueID,
+        seasonID,
+        matchweekNumber
+    } = req.params
+    const geekLeague = await GeekLeague.findById(geekLeagueID)
+    const geeks = await User.find({
+        _id: {
+            $in: geekLeague.geeks
+        }
+    })
+    const rankedGeeks = geeks.sort((a, b) => {
+        const seasonA = a.seasons.filter(seas => seas.season.toString() === seasonID.toString())
+        const seasonB = b.seasons.filter(seas => seas.season.toString() === seasonID.toString())
+        if (seasonA.length < 1) return 1
+        if (seasonB.length < 1) return -1
+        const matchweekA = seasonA[0].matchweeks.filter(matchweek => matchweek.number.toString() === matchweekNumber.toString())
+        const matchweekB = seasonB[0].matchweeks.filter(matchweek => matchweek.number.toString() === matchweekNumber.toString())
+        if (matchweekA.length < 1) return 1
+        if (matchweekB.length < 1) return -1
+        return matchweekB[0].totalPoints - matchweekA[0].totalPoints
+    })
+    res.status(200).json({
+        geeks: rankedGeeks
+    })
+}
+
 exports.getUserLeagues = async(req, res) => {
     const user = await User.findById(req.user._id)
         .populate({

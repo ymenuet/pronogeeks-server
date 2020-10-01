@@ -24,7 +24,12 @@ exports.getSeason = async(req, res) => {
     const season = await Season.findById(req.params.seasonID)
         .populate({
             path: 'fixtures',
-            model: 'Fixture'
+            model: 'Fixture',
+            options: {
+                sort: {
+                    date: 1
+                }
+            },
         })
         .populate({
             path: 'rankedTeams',
@@ -60,7 +65,7 @@ exports.getMatchweek = async(req, res) => {
             model: 'Fixture',
             options: {
                 sort: {
-                    date: -1
+                    date: 1
                 }
             },
             populate: {
