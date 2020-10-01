@@ -23,10 +23,22 @@ passport.use(new FacebookStrategy(facebookConfig, async(accesToken, refreshToken
         }
     })
     if (!user && !userWithEmail) {
+        const name = profile.name.givenName
+        let randomUsername = `${name}Geek${Math.floor(Math.random() * 999999)}`
+        let userRandom = await User.findOne({
+            username: randomUsername
+        })
+        while (userRandom) {
+            randomUsername = `${name}Geek${Math.floor(Math.random() * 999999)}`
+            userRandom = await User.findOne({
+                username: randomUsername
+            })
+        }
         const user = await User.create({
             facebookID: profile.id,
             email: profile.emails[0].value,
-            image: profile.photos[0].value,
+            photo: profile.photos[0].value,
+            username: randomUsername
         })
         return done(null, user)
     }

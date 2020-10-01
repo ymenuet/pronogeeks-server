@@ -22,10 +22,22 @@ passport.use(new GoogleStrategy(googleConfig, async(accessToken, refreshToken, p
         }
     })
     if (!user && !userWithEmail) {
+        const name = profile.name.givenName
+        let randomUsername = `${name}Geek${Math.floor(Math.random() * 999999)}`
+        let userRandom = await User.findOne({
+            username: randomUsername
+        })
+        while (userRandom) {
+            randomUsername = `${name}Geek${Math.floor(Math.random() * 999999)}`
+            userRandom = await User.findOne({
+                username: randomUsername
+            })
+        }
         const user = await User.create({
             email: profile.emails[0].value,
             googleID: profile.id,
-            image: profile.photos[0].value,
+            photo: profile.photos[0].value,
+            username: randomUsername
         })
         return done(null, user)
     }
