@@ -1,5 +1,8 @@
 const User = require('../models/User')
 const Season = require('../models/Season')
+const {
+    json
+} = require('body-parser')
 
 exports.getUsers = async(req, res) => {
     const users = await User.find(null, null, {
@@ -9,6 +12,30 @@ exports.getUsers = async(req, res) => {
     })
     res.status(200).json({
         users
+    })
+}
+
+exports.getUser = async(req, res) => {
+    const user = await User.findById(req.params.userID)
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'season',
+                model: 'Season'
+            }
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'matchweeks',
+                populate: {
+                    path: 'pronogeeks',
+                    model: 'Pronogeek'
+                }
+            }
+        })
+    res.status(200).json({
+        user
     })
 }
 

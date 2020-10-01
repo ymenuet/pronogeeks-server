@@ -11,10 +11,13 @@ const {
     getMatchweek,
     getPlayersSeason,
     saveFavTeam,
-    getUsers
+    getUsers,
+    getUser
 } = require('../controllers/user')
 
 router.get('/users', ensureLogin, catchErrors(getUsers))
+
+router.get('/geek/:userID', ensureLogin, catchErrors(getUser))
 
 router.get('/players/:seasonID', ensureLogin, catchErrors(getPlayersSeason))
 
