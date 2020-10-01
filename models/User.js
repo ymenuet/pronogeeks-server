@@ -14,7 +14,7 @@ const UserSchema = new Schema({
     facebookID: String,
     role: {
         type: String,
-        enum: ['SUPER GEEK', 'GEEK'],
+        enum: ['GEEK ADMIN', 'SUPER GEEK', 'GEEK'],
         default: 'GEEK'
     },
     photo: {

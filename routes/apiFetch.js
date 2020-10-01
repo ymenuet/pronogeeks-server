@@ -16,18 +16,18 @@ const {
 
 //=============TEAMS=================
 
-router.get('/teams/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchAllSeasonTeamsFromApi))
+router.get('/teams/season/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(fetchAllSeasonTeamsFromApi))
 
-router.get('/ranking/season/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchSeasonRankingFromApi))
+router.get('/ranking/season/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(fetchSeasonRankingFromApi))
 
 
 //============FIXTURES===============
 
-router.get('/fixtures/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchSeasonMatchweekFixturesFromApi))
+router.get('/fixtures/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole(['GEEK ADMIN', 'SUPER GEEK']), catchErrors(fetchSeasonMatchweekFixturesFromApi))
 
 
 //===========FIXTURE ODDS============
 
-router.get('/odds/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole('SUPER GEEK'), catchErrors(fetchNextMatchweekOddsFromApi))
+router.get('/odds/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole(['GEEK ADMIN', 'SUPER GEEK']), catchErrors(fetchNextMatchweekOddsFromApi))
 
 module.exports = router;

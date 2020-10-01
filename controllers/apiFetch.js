@@ -157,7 +157,8 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             winner,
             status: fixture.status,
             statusShort: fixture.statusShort,
-            timeElapsed
+            timeElapsed,
+            lastScoreUpdate: Date.now()
         }, {
             new: true
         })
@@ -399,7 +400,8 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
         }, {
             oddsWinHome,
             oddsDraw,
-            oddsWinAway
+            oddsWinAway,
+            lastOddsUpdate: Date.now()
         }, {
             new: true
         })

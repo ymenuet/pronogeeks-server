@@ -25,7 +25,7 @@ router.post("/signup", catchErrors(signupProcess));
 
 router.get("/logout", ensureLogin, logout);
 
-router.get('/profile', ensureLogin, getCurrentUser)
+router.get('/profile', getCurrentUser)
 
 router.get('/facebook', facebookLogin)
 router.get('/facebook/callback', facebookCallback)

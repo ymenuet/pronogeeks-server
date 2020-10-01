@@ -58,6 +58,14 @@ const FixtureSchema = new Schema({
         type: Number,
         default: null
     },
+    lastScoreUpdate: {
+        type: Date,
+        default: Date.now()
+    },
+    lastOddsUpdate: {
+        type: Date,
+        default: Date.now()
+    }
 }, {
     timestamps: true
 })

@@ -7,8 +7,8 @@ exports.ensureLogin = (req, res, next) => {
     })
 }
 
-exports.checkRole = role => (req, res, next) => {
-    if (req.user.role === role) next()
+exports.checkRole = roles => (req, res, next) => {
+    if (roles.includes(req.user.role)) next()
     else res.status(401).json({
         message: 'You are not authorized for executing this action.'
     })
