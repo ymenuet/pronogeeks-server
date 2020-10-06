@@ -12,7 +12,8 @@ const {
     getPlayersSeason,
     saveFavTeam,
     getUsers,
-    getUser
+    getUser,
+    deleteUserAccount
 } = require('../controllers/user')
 
 router.get('/users', ensureLogin, catchErrors(getUsers))
@@ -20,6 +21,8 @@ router.get('/users', ensureLogin, catchErrors(getUsers))
 router.get('/geek/:userID', ensureLogin, catchErrors(getUser))
 
 router.get('/players/:seasonID', ensureLogin, catchErrors(getPlayersSeason))
+
+router.get('/delete/:userID', ensureLogin, catchErrors(deleteUserAccount))
 
 router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
 

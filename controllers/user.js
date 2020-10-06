@@ -1,8 +1,6 @@
 const User = require('../models/User')
 const Season = require('../models/Season')
-const {
-    json
-} = require('body-parser')
+const Pronogeek = require('../models/Pronogeek')
 
 exports.getUsers = async(req, res) => {
     const users = await User.find(null, null, {
@@ -156,6 +154,23 @@ exports.saveFavTeam = async(req, res) => {
         message: {
             en: 'Favorite team saved.',
             fr: 'Équipe de coeur enregistrée.'
+        }
+    })
+}
+
+exports.deleteUserAccount = async(req, res) => {
+    const {
+        userID
+    } = req.params
+    await User.findByIdAndDelete(userID)
+    const pronogeeksUser = await Pronogeek.find({
+        geek: userID
+    })
+    pronogeeksUser.forEach(pronogeek => pronogeek.deleteOne)
+    res.status(200).json({
+        message: {
+            en: 'User deleted.',
+            fr: 'Compte supprimé.'
         }
     })
 }

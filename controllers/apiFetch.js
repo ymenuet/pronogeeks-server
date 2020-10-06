@@ -233,7 +233,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                     }
                 })
             pronogeeks.forEach(pronogeek => {
-                if (pronogeek.winner === winner && !pronogeek.addedToProfile) {
+                if (pronogeek.winner === winner && !pronogeek.addedToProfile && pronogeek.geek) {
                     userIDs.push(pronogeek.geek._id)
                     pronogeek.correct = true
                     pronogeek.points = parseInt(pronogeek.potentialPoints)
@@ -274,57 +274,59 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                             }
                         }
                     })
-                let seasonIndex;
-                user.seasons.forEach((season, i) => {
-                    if (season.season._id.toString() == seasonID) seasonIndex = i
-                })
-                let matchweekIndex;
-                user.seasons[seasonIndex].matchweeks.forEach((matchweek, i) => {
-                    if (matchweek.number.toString() == matchweekNumber) matchweekIndex = i
-                })
-                let matchweekPoints = 0;
-                let numberCorrects = 0;
-                let bonusPoints = 0
-                user.seasons[seasonIndex].matchweeks[matchweekIndex].pronogeeks.forEach(pronogeek => {
-                    if (pronogeek.points) matchweekPoints += parseInt(pronogeek.points)
-                    if (pronogeek.correct) numberCorrects++
-                })
-                switch (numberCorrects) {
-                    case 5:
-                        bonusPoints = 50
-                        break;
-                    case 6:
-                        bonusPoints = 100
-                        break;
-                    case 7:
-                        bonusPoints = 200
-                        break;
-                    case 8:
-                        bonusPoints = 300
-                        break;
-                    case 9:
-                        bonusPoints = 500
-                        break;
-                    case 10:
-                        bonusPoints = 700
-                        break;
-                    default:
-                        bonusPoints = 0
+                if (user) {
+                    let seasonIndex;
+                    user.seasons.forEach((season, i) => {
+                        if (season.season._id.toString() == seasonID) seasonIndex = i
+                    })
+                    let matchweekIndex;
+                    user.seasons[seasonIndex].matchweeks.forEach((matchweek, i) => {
+                        if (matchweek.number.toString() == matchweekNumber) matchweekIndex = i
+                    })
+                    let matchweekPoints = 0;
+                    let numberCorrects = 0;
+                    let bonusPoints = 0
+                    user.seasons[seasonIndex].matchweeks[matchweekIndex].pronogeeks.forEach(pronogeek => {
+                        if (pronogeek.points) matchweekPoints += parseInt(pronogeek.points)
+                        if (pronogeek.correct) numberCorrects++
+                    })
+                    switch (numberCorrects) {
+                        case 5:
+                            bonusPoints = 50
+                            break;
+                        case 6:
+                            bonusPoints = 100
+                            break;
+                        case 7:
+                            bonusPoints = 200
+                            break;
+                        case 8:
+                            bonusPoints = 300
+                            break;
+                        case 9:
+                            bonusPoints = 500
+                            break;
+                        case 10:
+                            bonusPoints = 700
+                            break;
+                        default:
+                            bonusPoints = 0
+                    }
+
+                    // Update matchweek points on user profile
+                    user.seasons[seasonIndex].matchweeks[matchweekIndex].points = parseInt(matchweekPoints)
+                    user.seasons[seasonIndex].matchweeks[matchweekIndex].numberCorrects = parseInt(numberCorrects)
+                    user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPoints)
+                    user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
+
+                    // Update season points on user profile
+                    let seasonPoints = 0;
+                    user.seasons[seasonIndex].matchweeks.forEach(matchweek => seasonPoints += matchweek.totalPoints)
+                    user.seasons[seasonIndex].totalPoints = seasonPoints
+
+                    user.save()
+                    return user
                 }
-
-                // Update matchweek points on user profile
-                user.seasons[seasonIndex].matchweeks[matchweekIndex].points = parseInt(matchweekPoints)
-                user.seasons[seasonIndex].matchweeks[matchweekIndex].numberCorrects = parseInt(numberCorrects)
-                user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPoints)
-                user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
-
-                // Update season points on user profile
-                let seasonPoints = 0;
-                user.seasons[seasonIndex].matchweeks.forEach(matchweek => seasonPoints += matchweek.totalPoints)
-                user.seasons[seasonIndex].totalPoints = seasonPoints
-
-                user.save()
-                return user
             }))
         }
         return updatedFixture
