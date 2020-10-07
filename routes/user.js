@@ -22,12 +22,12 @@ router.get('/geek/:userID', ensureLogin, catchErrors(getUser))
 
 router.get('/players/:seasonID', ensureLogin, catchErrors(getPlayersSeason))
 
-router.get('/delete/:userID', ensureLogin, catchErrors(deleteUserAccount))
-
 router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
 
 router.get('/:seasonID/:matchweekNumber', ensureLogin, catchErrors(getMatchweek))
 
 router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
+
+router.delete('/:userID', ensureLogin, catchErrors(deleteUserAccount))
 
 module.exports = router;

@@ -135,13 +135,25 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         })
         const awayTeamId = awayTeam._id
 
+        const fixtureOdds = await Fixture.findOne({
+            apiFixtureID: fixture.fixture_id
+        })
+
         const goalsHomeTeam = fixture.goalsHomeTeam
         const goalsAwayTeam = fixture.goalsAwayTeam
         let winner = null;
+        let points = 0;
         if (goalsHomeTeam >= 0 && goalsAwayTeam >= 0) {
-            goalsHomeTeam > goalsAwayTeam ? winner = fixture.homeTeam.team_name :
-                goalsHomeTeam < goalsAwayTeam ? winner = fixture.awayTeam.team_name :
+            if (goalsHomeTeam > goalsAwayTeam) {
+                winner = fixture.homeTeam.team_name;
+                points = fixtureOdds.oddsWinHome
+            } else if (goalsHomeTeam < goalsAwayTeam) {
+                winner = fixture.awayTeam.team_name
+                points = fixtureOdds.oddsWinAway
+            } else {
                 winner = 'Draw'
+                points = fixtureOdds.oddsDraw
+            }
         }
         const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed
         const updatedFixture = await Fixture.findOneAndUpdate({
@@ -236,16 +248,16 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                 if (pronogeek.winner === winner && !pronogeek.addedToProfile && pronogeek.geek) {
                     userIDs.push(pronogeek.geek._id)
                     pronogeek.correct = true
-                    pronogeek.points = parseInt(pronogeek.potentialPoints)
+                    pronogeek.points = parseInt(points)
                     if (pronogeek.homeProno == updatedFixture.goalsHomeTeam && pronogeek.awayProno == updatedFixture.goalsAwayTeam) {
                         pronogeek.exact = true
-                        pronogeek.points = parseInt(pronogeek.potentialPoints) * 2
+                        pronogeek.points = parseInt(points) * 2
                     }
 
                     // add 30point bonus if good pronostic on favorite team game
                     const userSeason = pronogeek.geek.seasons.filter(season => season.season._id.toString() == pronogeek.season.toString())[0]
                     const userFavTeam = userSeason.favTeam ? userSeason.favTeam.name : ''
-                    if (userFavTeam.toString() == pronogeek.fixture.homeTeam.name.toString() || userFavTeam.toString() == pronogeek.fixture.awayTeam.name.toString()) {
+                    if (userFavTeam.toString() === pronogeek.fixture.homeTeam.name.toString() || userFavTeam.toString() === pronogeek.fixture.awayTeam.name.toString()) {
                         pronogeek.bonusFavTeam = true
                         pronogeek.points += 30
                     }

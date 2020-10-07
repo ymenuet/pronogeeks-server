@@ -56,7 +56,7 @@ passport.deserializeUser((userIdFromSession, cb) => {
             }
         })
         .then(userDocument => {
-            if (userDocument.password) userDocument.password = undefined
+            if (userDocument) userDocument.password = undefined
             cb(null, userDocument);
         })
         .catch(err => {

@@ -166,7 +166,7 @@ exports.deleteUserAccount = async(req, res) => {
     const pronogeeksUser = await Pronogeek.find({
         geek: userID
     })
-    pronogeeksUser.forEach(pronogeek => pronogeek.deleteOne)
+    pronogeeksUser.forEach(pronogeek => pronogeek.deleteOne())
     res.status(200).json({
         message: {
             en: 'User deleted.',
