@@ -1,4 +1,4 @@
-# Pronogeeks
+# Pronogeeks - server
 ## Ironhack project #3: React.js full-stack web application
 
 ### Deployed application: https://pronogeeks.herokuapp.com/
