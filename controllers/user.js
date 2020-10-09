@@ -8,6 +8,7 @@ exports.getUsers = async(req, res) => {
             username: 1
         }
     })
+    users.forEach(user => user.password = undefined)
     res.status(200).json({
         users
     })
@@ -32,6 +33,7 @@ exports.getUser = async(req, res) => {
                 }
             }
         })
+    if (user) user.password = undefined
     res.status(200).json({
         user
     })
@@ -127,6 +129,7 @@ exports.getPlayersSeason = async(req, res) => {
             }
         }
     })
+    users.forEach(user => user.password = undefined)
     res.status(200).json({
         users
     })
