@@ -18,7 +18,7 @@ passport.use(new FacebookStrategy(facebookConfig, async(accesToken, refreshToken
     })
     if (!user && userWithEmail) return done(null, false, {
         message: {
-            en: "Try logging in with Google or a local account",
+            en: "Try logging in with Google or a local account.",
             fr: 'Essaye de te connecter avec Google ou un compte local.'
         }
     })

@@ -71,8 +71,8 @@ exports.signupProcess = async(req, res, next) => {
         to: email,
         subject: 'Validation de ton compte Pronogeeks',
         html: `
-        <h1>Bienvenue sur Pronogeeks !</h1>
-        <p>Avant de commencer à pronogeeker, merci de confirmer ton email en cliquant sur ce <a href='${process.env.URL}/confirm-account/${newUser._id}'>lien</a>.</p>
+        <h2>Bienvenue sur Pronogeeks, ${username} !</h2>
+        <p>Avant de commencer à pronogeeker, merci de confirmer ton email en cliquant sur ce <a href='${process.env.FRONTENDPOINT}/confirm-account/${newUser._id}'>lien</a>.</p>
         `
     })
 

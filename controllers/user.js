@@ -158,6 +158,18 @@ exports.saveFavTeam = async(req, res) => {
     })
 }
 
+exports.confirmUser = async(req, res) => {
+    await User.findByIdAndUpdate(req.params.userID, {
+        confirmed: true
+    })
+    res.status(200).json({
+        message: {
+            en: 'Email confirmed.',
+            fr: 'Email confirmé.'
+        }
+    })
+}
+
 exports.deleteUserAccount = async(req, res) => {
     const {
         userID
