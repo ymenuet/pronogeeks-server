@@ -12,6 +12,10 @@ const UserSchema = new Schema({
     password: String,
     googleID: String,
     facebookID: String,
+    confirmed: {
+        type: Boolean,
+        default: false
+    },
     role: {
         type: String,
         enum: ['GEEK ADMIN', 'SUPER GEEK', 'GEEK'],

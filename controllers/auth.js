@@ -1,6 +1,6 @@
 const passport = require('passport');
 const User = require("../models/User");
-const Season = require("../models/Season");
+const transporter = require('../config/mailer')
 
 // Bcrypt to encrypt passwords
 const {
@@ -51,7 +51,7 @@ exports.signupProcess = async(req, res, next) => {
 
     const hashPass = hashSync(password, genSaltSync(bcryptSalt));
 
-    await User.create({
+    const newUser = await User.create({
         email,
         username,
         photo,
@@ -65,6 +65,16 @@ exports.signupProcess = async(req, res, next) => {
             fr: `Il y a eu un problème du côté du server.`
         }
     }))
+
+    await transporter.sendMail({
+        from: 'Pronogeeks <no-reply@pronogeeks.com>',
+        to: email,
+        subject: 'Validation de ton compte Pronogeeks',
+        html: `
+        <h1>Bienvenue sur Pronogeeks !</h1>
+        <p>Avant de commencer à pronogeeker, merci de confirmer ton email en cliquant sur ce <a href='${process.env.URL}/confirm-account/${newUser._id}'>lien</a>.</p>
+        `
+    })
 
     res.status(200).json({
         message: {

@@ -38,7 +38,8 @@ passport.use(new FacebookStrategy(facebookConfig, async(accesToken, refreshToken
             facebookID: profile.id,
             email: profile.emails[0].value,
             photo: profile.photos[0].value,
-            username: randomUsername
+            username: randomUsername,
+            confirmed: true
         })
         return done(null, user)
     }

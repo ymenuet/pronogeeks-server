@@ -37,7 +37,8 @@ passport.use(new GoogleStrategy(googleConfig, async(accessToken, refreshToken, p
             email: profile.emails[0].value,
             googleID: profile.id,
             photo: profile.photos[0].value,
-            username: randomUsername
+            username: randomUsername,
+            confirmed: true
         })
         return done(null, user)
     }
