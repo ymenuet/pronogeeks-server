@@ -25,7 +25,10 @@ const UserSchema = new Schema({
         type: String,
         default: 'https://res.cloudinary.com/dlyw9xi3k/image/upload/v1601160365/pronogeeks/default-profile-pic.jpg'
     },
-    renewToken: String,
+    renewToken: {
+        type: String,
+        default: null
+    },
     geekLeagues: [{
         type: Schema.Types.ObjectId,
         ref: 'GeekLeague'

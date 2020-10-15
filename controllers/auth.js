@@ -243,13 +243,23 @@ exports.resetPwd = async(req, res) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let renewToken = ''
     for (let i = 0; i < 30; i++) renewToken += characters.charAt(Math.floor(Math.random() * characters.length))
-    const user = await User.findOneAndUpdate({
+    const user = await User.findOne({
         email
-    }, {
-        renewToken
-    }, {
-        new: true
     })
+    if (user.googleID) return res.status(401).json({
+        message: {
+            en: `You created your account using Google. Use it to connect to your account.`,
+            fr: `Tu as créé ton compte avec Google. Utilise Google pour te connecter.`
+        }
+    })
+    if (user.facebookID) return res.status(401).json({
+        message: {
+            en: `You created your account using Facebook. Use it to connect to your account.`,
+            fr: `Tu as créé ton compte avec Facebook. Utilise Facebook pour te connecter.`
+        }
+    })
+    user.renewToken = renewToken
+    await user.save()
     await transporter.sendMail({
         from: 'Pronogeeks <no-reply@pronogeeks.com>',
         to: email,
