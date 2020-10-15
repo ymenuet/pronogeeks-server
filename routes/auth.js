@@ -11,7 +11,9 @@ const {
     googleLogin,
     googleCallback,
     getCurrentUser,
-    editPhoto
+    editPhoto,
+    resetPwd,
+    updatePwd
 } = require('../controllers/auth')
 
 const {
@@ -36,5 +38,8 @@ router.get('/google/callback', googleCallback)
 router.put('/edit', ensureLogin, catchErrors(editProfileProcess))
 
 router.put('/editPic', ensureLogin, catchErrors(editPhoto))
+
+router.put('/reset-pwd', catchErrors(resetPwd))
+router.put('/new-pwd/:userID/:renewToken', catchErrors(updatePwd))
 
 module.exports = router;

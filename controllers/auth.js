@@ -235,3 +235,63 @@ exports.googleCallback = (req, res, next) => {
         })
     })(req, res, next)
 }
+
+exports.resetPwd = async(req, res) => {
+    const {
+        email
+    } = req.body
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let renewToken = ''
+    for (let i = 0; i < 30; i++) renewToken += characters.charAt(Math.floor(Math.random() * characters.length))
+    const user = await User.findOneAndUpdate({
+        email
+    }, {
+        renewToken
+    }, {
+        new: true
+    })
+    await transporter.sendMail({
+        from: 'Pronogeeks <no-reply@pronogeeks.com>',
+        to: email,
+        subject: 'Changement du mot de passe de ton compte',
+        html: `
+        <h2>Salut ${user.username} !</h2>
+        <p>Pour changer ton mot de passe, clique sur ce <a href='${process.env.FRONTENDPOINT}/reset-pwd/${user._id}/${user.renewToken}'>lien</a>.</p>
+        `
+    })
+    res.status(200).json({
+        message: {
+            en: 'Mail to renew password sent.',
+            fr: 'Mail pour renouvellement de mot de passe envoyé.'
+        }
+    })
+}
+
+exports.updatePwd = async(req, res) => {
+    const {
+        userID,
+        renewToken
+    } = req.params
+    const {
+        password
+    } = req.body
+    const hashPass = hashSync(password, genSaltSync(bcryptSalt));
+    const user = await User.findOne({
+        _id: userID
+    })
+    if (!user || user.renewToken !== renewToken || !user.renewToken) return res.status(401).json({
+        message: {
+            en: `This link is not valid anymore. Please check if you did not receive a more recent email, or ask for a new one.`,
+            fr: `Ce lien n'est plus valable. Vérifie si tu n'as pas reçu un lien plus récent, ou demandes-en un autre.`
+        }
+    })
+    user.renewToken = null
+    user.password = hashPass
+    await user.save()
+    res.status(200).json({
+        message: {
+            en: 'Password updated.',
+            fr: 'Mot de passe actualisé.'
+        }
+    })
+}
