@@ -354,75 +354,53 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
         seasonID,
         matchweekNumber
     } = req.params
-    const season = await Season.findById(seasonID)
-    const leagueID = season.apiLeagueID
 
     // Cancel fetch if matches already finished
     const matchweekFixtures = await Fixture.find({
-        matchweek: matchweekNumber
+        matchweek: matchweekNumber,
+        season: seasonID
     })
-    const fixturesLeftToPlay = matchweekFixtures.filter(fixture => fixture.statusShort === 'TBD' || fixture.statusShort === 'NS' || fixture.statusShort === '1H' || fixture.statusShort === 'HT' || fixture.statusShort === '2H' || fixture.statusShort === 'ET' || fixture.statusShort === 'P' || fixture.statusShort === 'BT' || fixture.statusShort === 'SUSP' || fixture.statusShort === 'INT' || fixture.statusShort === 'PST')
+    const fixturesLeftToPlay = matchweekFixtures.filter(fixture => new Date(fixture.date).getTime() - Date.now() > 1000 * 60 * 30)
     if (fixturesLeftToPlay.length < 1) return res.status(200).json({
         message: {
-            en: `There is no game to update. They are all finished.`,
-            fr: `Tous les matchs sont déjà finis. Il n'y a rien à mettre à jour.`
+            en: `There is no game to update. They are all finished or starting in less than 30min.`,
+            fr: `Tous les matchs sont déjà finis ou commencent dans moins de 30min. Il n'y a rien à mettre à jour.`
         }
     })
 
-    const {
-        data: {
-            api: {
-                odds: oddsAPI
+    const fixtureUpdatedOdds = await Promise.all(fixturesLeftToPlay.map(async fixture => {
+        const {
+            data: {
+                api: {
+                    odds
+                }
             }
-        }
-    } = await axios({
-        "method": "GET",
-        "url": `https://api-football-v1.p.rapidapi.com/v2/odds/league/${leagueID}/label/1?page=${matchweekNumber}`,
-        "headers": {
-            "content-type": "application/octet-stream",
-            "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
-            "x-rapidapi-key": process.env.APIFOOTBALL_KEY,
-            "useQueryString": true
-        }
-    })
-
-    const fixtureOdds = await Promise.all(oddsAPI.map(async odd => {
-        // Not to update the matches that are already finished
-        const fixtureForStatus = await Fixture.findOne({
-            apiFixtureID: odd.fixture.fixture_id
+        } = await axios({
+            "method": "GET",
+            "url": `https://api-football-v1.p.rapidapi.com/v2/odds/fixture/${fixture.apiFixtureID}/label/1`,
+            "headers": {
+                "content-type": "application/octet-stream",
+                "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
+                "x-rapidapi-key": process.env.APIFOOTBALL_KEY,
+                "useQueryString": true
+            }
         })
-        const fixtureID = fixtureForStatus._id
-
-        // Do not update if the game has already started so that it doesn't update with the latest odds that noone had time to see when saving their pronogeeks
-        if (new Date(fixtureForStatus.date).getTime() - Date.now() < 0) return {
-            message: {
-                en: `The odds of the fixture with ID ${fixtureID} were not updated since the game has already started or finished.`,
-                fr: `Les cotes du match d'ID ${fixtureID} n'ont pas été mis à jour car le match a déjà commencé ou est dejà fini.`
-            }
-        }
-
+        const odd = odds[0]
         let unibetOdds = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)
         if (unibetOdds.length > 0) unibetOdds = unibetOdds[0]
         else unibetOdds = odd.bookmakers[0]
 
-        const oddsWinHome = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
-        const oddsDraw = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
-        const oddsWinAway = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
+        fixture.oddsWinHome = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
+        fixture.oddsDraw = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
+        fixture.oddsWinAway = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
+        fixture.lastOddsUpdate = Date.now()
 
-        const fixture = await Fixture.findOneAndUpdate({
-            apiFixtureID: odd.fixture.fixture_id,
-        }, {
-            oddsWinHome,
-            oddsDraw,
-            oddsWinAway,
-            lastOddsUpdate: Date.now()
-        }, {
-            new: true
-        })
+        await fixture.save()
+
         return fixture
     }))
 
     res.status(200).json({
-        fixtures: fixtureOdds
+        fixtures: fixtureUpdatedOdds
     })
 }
