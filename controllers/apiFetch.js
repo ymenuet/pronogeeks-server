@@ -262,8 +262,9 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                         pronogeek.points += 30
                     }
                 }
-                pronogeek.addedToProfile = true
                 await pronogeek.save()
+                pronogeek.addedToProfile = true
+                return pronogeek
             }))
             await Promise.all(userIDs.map(async userID => {
                 const user = await User.findOne({
@@ -332,7 +333,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                     user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
 
                     // Update season points on user profile
-                    let seasonPoints = 0;
+                    let seasonPoints = user.seasons[seasonIndex].initialPoints || 0;
                     user.seasons[seasonIndex].matchweeks.forEach(matchweek => seasonPoints += matchweek.totalPoints)
                     user.seasons[seasonIndex].totalPoints = seasonPoints
 

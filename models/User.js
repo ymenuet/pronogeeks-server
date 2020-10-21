@@ -46,6 +46,10 @@ const UserSchema = new Schema({
             type: Number,
             default: 0
         },
+        initialPoints: {
+            type: Number,
+            default: 0
+        },
         provisionalRanking: [{
             type: Schema.Types.ObjectId,
             ref: 'Team'
