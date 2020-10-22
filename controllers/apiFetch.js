@@ -262,8 +262,8 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                         pronogeek.points += 30
                     }
                 }
-                await pronogeek.save()
                 pronogeek.addedToProfile = true
+                await pronogeek.save()
                 return pronogeek
             }))
             await Promise.all(userIDs.map(async userID => {
