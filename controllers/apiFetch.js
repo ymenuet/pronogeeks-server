@@ -104,26 +104,6 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         }
     })
 
-    // Fetch fixtures of the matchweek
-    const {
-        data: {
-            api: {
-                fixtures: fixturesAPI
-            }
-        }
-    } = await axios({
-        "method": "GET",
-        "url": `https://api-football-v1.p.rapidapi.com/v2/fixtures/league/${leagueID}/Regular_Season_-_${matchweekNumber}`,
-        "headers": {
-            "content-type": "application/octet-stream",
-            "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
-            "x-rapidapi-key": process.env.APIFOOTBALL_KEY,
-            "useQueryString": true
-        },
-        "params": {
-            "timezone": "Europe/London"
-        }
-    })
 
     // Fetch fixtures that have been postponed in order to update their date
     const postponedFixturesDB = await Fixture.find({
@@ -132,17 +112,15 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
 
     if (postponedFixturesDB.length > 0) {
 
-        const oldestUpdatePostponedGames = postponedFixturesDB.map(fixture => fixture.lastScoreUpdate).reduce((a, b) => a - b < 0 ? a : b, Date.now())
+        const uniqueMatchweeks = []
+        postponedFixturesDB.forEach(fixture => {
+            if (!uniqueMatchweeks.includes(fixture.matchweek) &&
+                Date.now() - new Date(fixture.lastScoreUpdate) > 1000 * 60 * 60 * 24 &&
+                Date.now() - new Date(fixture.date) > 0
+            ) uniqueMatchweeks.push(fixture.matchweek)
+        })
 
-        // the next "if" is only to update the postponed games once a day
-        if (Date.now() - new Date(oldestUpdatePostponedGames) > 1000 * 60 * 60 * 24) {
-
-            const matchweeksWithPostponedFixtures = postponedFixturesDB.map(fixture => fixture.matchweek)
-            const uniqueMatchweeks = []
-            matchweeksWithPostponedFixtures.forEach(matchweek => {
-                if (!uniqueMatchweeks.includes(matchweek)) uniqueMatchweeks.push(matchweek)
-            })
-
+        if (uniqueMatchweeks.length > 0) {
             const matchweeksWithPostponedFixturesAPI = await Promise.all(uniqueMatchweeks.map(async matchweekNum => {
                 const {
                     data: {
@@ -169,15 +147,37 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             const fixturesToUpdate = []
             matchweeksWithPostponedFixturesAPI.forEach(matchweek => fixturesToUpdate.push(...matchweek))
 
-            await fixturesToUpdate.map(async fixture => {
+            await Promise.all(fixturesToUpdate.map(async fixture => {
                 await Fixture.findOneAndUpdate({
                     apiFixtureID: fixture.fixture_id
                 }, {
-                    date: fixture.event_date
+                    date: fixture.event_date,
+                    lastScoreUpdate: Date.now()
                 })
-            })
+            }))
         }
     }
+
+    // Fetch fixtures of the matchweek
+    const {
+        data: {
+            api: {
+                fixtures: fixturesAPI
+            }
+        }
+    } = await axios({
+        "method": "GET",
+        "url": `https://api-football-v1.p.rapidapi.com/v2/fixtures/league/${leagueID}/Regular_Season_-_${matchweekNumber}`,
+        "headers": {
+            "content-type": "application/octet-stream",
+            "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
+            "x-rapidapi-key": process.env.APIFOOTBALL_KEY,
+            "useQueryString": true
+        },
+        "params": {
+            "timezone": "Europe/London"
+        }
+    })
 
     const fixtures = await Promise.all(fixturesAPI.map(async fixture => {
         const homeTeam = await Team.findOne({
@@ -300,6 +300,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                         }
                     }
                 })
+
             await Promise.all(pronogeeks.map(async pronogeek => {
                 if (pronogeek.winner === winner && !pronogeek.addedToProfile && pronogeek.geek) {
                     userIDs.push(pronogeek.geek._id)
@@ -322,6 +323,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                 await pronogeek.save()
                 return pronogeek
             }))
+
             await Promise.all(userIDs.map(async userID => {
                 const user = await User.findOne({
                         _id: userID
