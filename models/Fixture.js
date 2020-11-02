@@ -60,11 +60,11 @@ const FixtureSchema = new Schema({
     },
     lastScoreUpdate: {
         type: Date,
-        default: Date.now()
+        default: Date.now() - 1000 * 60 * 60 * 24 * 2
     },
     lastOddsUpdate: {
         type: Date,
-        default: Date.now()
+        default: Date.now() - 1000 * 60 * 60 * 24 * 2
     }
 }, {
     timestamps: true

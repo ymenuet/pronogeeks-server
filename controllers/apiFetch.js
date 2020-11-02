@@ -104,6 +104,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         }
     })
 
+    // Fetch fixtures of the matchweek
     const {
         data: {
             api: {
@@ -123,6 +124,61 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             "timezone": "Europe/London"
         }
     })
+
+    // Fetch fixtures that have been postponed in order to update their date
+    const postponedFixturesDB = await Fixture.find({
+        statusShort: 'PST'
+    })
+
+    if (postponedFixturesDB.length > 0) {
+
+        const oldestUpdatePostponedGames = postponedFixturesDB.map(fixture => fixture.lastScoreUpdate).reduce((a, b) => a - b < 0 ? a : b, Date.now())
+
+        // the next "if" is only to update the postponed games once a day
+        if (Date.now() - new Date(oldestUpdatePostponedGames) > 1000 * 60 * 60 * 24) {
+
+            const matchweeksWithPostponedFixtures = postponedFixturesDB.map(fixture => fixture.matchweek)
+            const uniqueMatchweeks = []
+            matchweeksWithPostponedFixtures.forEach(matchweek => {
+                if (!uniqueMatchweeks.includes(matchweek)) uniqueMatchweeks.push(matchweek)
+            })
+
+            const matchweeksWithPostponedFixturesAPI = await Promise.all(uniqueMatchweeks.map(async matchweekNum => {
+                const {
+                    data: {
+                        api: {
+                            fixtures: postponedFixturesAPI
+                        }
+                    }
+                } = await axios({
+                    "method": "GET",
+                    "url": `https://api-football-v1.p.rapidapi.com/v2/fixtures/league/${leagueID}/Regular_Season_-_${matchweekNum}`,
+                    "headers": {
+                        "content-type": "application/octet-stream",
+                        "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
+                        "x-rapidapi-key": process.env.APIFOOTBALL_KEY,
+                        "useQueryString": true
+                    },
+                    "params": {
+                        "timezone": "Europe/London"
+                    }
+                })
+                return postponedFixturesAPI
+            }))
+
+            const fixturesToUpdate = []
+            matchweeksWithPostponedFixturesAPI.forEach(matchweek => fixturesToUpdate.push(...matchweek))
+
+            await fixturesToUpdate.map(async fixture => {
+                await Fixture.findOneAndUpdate({
+                    apiFixtureID: fixture.fixture_id
+                }, {
+                    date: fixture.event_date
+                })
+            })
+        }
+    }
+
     const fixtures = await Promise.all(fixturesAPI.map(async fixture => {
         const homeTeam = await Team.findOne({
             apiTeamID: fixture.homeTeam.team_id,
@@ -294,7 +350,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                     })
                     let matchweekIndex;
                     user.seasons[seasonIndex].matchweeks.forEach((matchweek, i) => {
-                        if (matchweek.number.toString() == matchweekNumber) matchweekIndex = i
+                        if (matchweek.number.toString() == fixture.matchweek.toString()) matchweekIndex = i
                     })
                     let matchweekPoints = 0;
                     let numberCorrects = 0;
@@ -388,7 +444,9 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
         })
         const odd = odds[0]
         let unibetOdds = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)
+        let bwinOdds = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 6)
         if (unibetOdds.length > 0) unibetOdds = unibetOdds[0]
+        else if (bwinOdds.length > 0) unibetOdds = bwinOdds[0]
         else unibetOdds = odd.bookmakers[0]
 
         fixture.oddsWinHome = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
