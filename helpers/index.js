@@ -1,5 +1,3 @@
-const axios = require('axios')
-
 exports.matchFinished = statusShort => {
     return statusShort !== 'TBD' &&
         statusShort !== 'NS' &&
@@ -14,27 +12,37 @@ exports.matchFinished = statusShort => {
         statusShort !== 'PST'
 }
 
-exports.getFixturesByMatchweekFromAPI = async(leagueID, matchweekNum) => {
-    const {
-        data: {
-            api: {
-                fixtures
-            }
+exports.determineWinnerFixture = (fixture, fixtureOdds) => {
+    const goalsHomeTeam = fixture.goalsHomeTeam
+    const goalsAwayTeam = fixture.goalsAwayTeam
+    let winner = null;
+    let points = 0;
+    const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed
+    if (
+        typeof goalsHomeTeam === 'number' &&
+        goalsHomeTeam >= 0 &&
+        typeof goalsAwayTeam === 'number' &&
+        goalsAwayTeam >= 0
+    ) {
+        if (goalsHomeTeam > goalsAwayTeam) {
+            winner = fixture.homeTeam.team_name;
+            points = fixtureOdds.oddsWinHome
+        } else if (goalsHomeTeam < goalsAwayTeam) {
+            winner = fixture.awayTeam.team_name
+            points = fixtureOdds.oddsWinAway
+        } else {
+            winner = 'Draw'
+            points = fixtureOdds.oddsDraw
         }
-    } = await axios({
-        "method": "GET",
-        "url": `https://api-football-v1.p.rapidapi.com/v2/fixtures/league/${leagueID}/Regular_Season_-_${matchweekNum}`,
-        "headers": {
-            "content-type": "application/octet-stream",
-            "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
-            "x-rapidapi-key": process.env.APIFOOTBALL_KEY,
-            "useQueryString": true
-        },
-        "params": {
-            "timezone": "Europe/London"
-        }
-    })
-    return fixtures
+    }
+
+    return {
+        goalsHomeTeam,
+        goalsAwayTeam,
+        timeElapsed,
+        winner,
+        points
+    }
 }
 
 exports.calculateCorrectPronogeekPoints = (pronogeek, fixture, points) => {
@@ -113,4 +121,19 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     user.seasons[seasonIndex].totalPoints = seasonPoints
 
     return user
+}
+
+exports.calculateOdds = (odd, fixture) => {
+    let unibetOdds = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 16)
+    let bwinOdds = odd.bookmakers.filter(bookmaker => bookmaker.bookmaker_id === 6)
+    if (unibetOdds.length > 0) unibetOdds = unibetOdds[0]
+    else if (bwinOdds.length > 0) unibetOdds = bwinOdds[0]
+    else unibetOdds = odd.bookmakers[0]
+
+    fixture.oddsWinHome = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
+    fixture.oddsDraw = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
+    fixture.oddsWinAway = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
+    fixture.lastOddsUpdate = Date.now()
+
+    return fixture
 }
