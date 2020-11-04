@@ -29,7 +29,7 @@ router.get('/:seasonID/:matchweekNumber', ensureLogin, catchErrors(getMatchweek)
 
 router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
 
-router.put('/:userID', catchErrors(confirmUser))
+router.put('/:userID/:confirmToken', catchErrors(confirmUser))
 
 router.delete('/:userID', ensureLogin, catchErrors(deleteUserAccount))
 

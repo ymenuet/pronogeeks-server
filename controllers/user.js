@@ -162,7 +162,21 @@ exports.saveFavTeam = async(req, res) => {
 }
 
 exports.confirmUser = async(req, res) => {
-    await User.findByIdAndUpdate(req.params.userID, {
+    const {
+        userID,
+        confirmToken
+    } = req.params
+
+    const userToConfirm = await User.findById(userID)
+
+    if (userToConfirm.confirmToken !== confirmToken) return res.status(401).json({
+        message: {
+            en: `This link is not valid. Try to connect to your account.`,
+            fr: `Ce lien n'est pas valable. Essaye de te connecter à ton compte.`
+        }
+    })
+
+    await User.findByIdAndUpdate(userID, {
         confirmed: true
     })
     res.status(200).json({
