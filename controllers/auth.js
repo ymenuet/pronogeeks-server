@@ -10,6 +10,10 @@ const {
 
 const bcryptSalt = 12;
 
+const {
+    generateRandomToken
+} = require('../helpers')
+
 exports.signupProcess = async(req, res, next) => {
     const {
         email,
@@ -51,10 +55,13 @@ exports.signupProcess = async(req, res, next) => {
 
     const hashPass = hashSync(password, genSaltSync(bcryptSalt));
 
+    const confirmToken = generateRandomToken(30)
+
     const newUser = await User.create({
         email,
         username,
         photo,
+        confirmToken,
         password: hashPass,
         geekLeagues: [],
         friends: [],
@@ -72,7 +79,7 @@ exports.signupProcess = async(req, res, next) => {
         subject: 'Validation de ton compte Pronogeeks',
         html: `
         <h2>Bienvenue sur Pronogeeks, ${username} !</h2>
-        <p>Avant de commencer à pronogeeker, merci de confirmer ton email en cliquant sur ce <a href='${process.env.FRONTENDPOINT}/confirm-account/${newUser._id}'>lien</a>.</p>
+        <p>Avant de commencer à pronogeeker, merci de confirmer ton email en cliquant sur ce <a href='${process.env.FRONTENDPOINT}/confirm-account/${newUser._id}/${newUser.confirmToken}'>lien</a>.</p>
         `
     })
 
@@ -240,9 +247,7 @@ exports.resetPwd = async(req, res) => {
     const {
         email
     } = req.body
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let renewToken = ''
-    for (let i = 0; i < 30; i++) renewToken += characters.charAt(Math.floor(Math.random() * characters.length))
+    const renewToken = generateRandomToken(30)
     const user = await User.findOne({
         email
     })
