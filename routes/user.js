@@ -13,6 +13,7 @@ const {
     saveFavTeam,
     getUsers,
     getUser,
+    saveGeekLeagueHistory,
     confirmUser,
     deleteUserAccount
 } = require('../controllers/user')
@@ -26,6 +27,8 @@ router.get('/players/:seasonID', ensureLogin, catchErrors(getPlayersSeason))
 router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
 
 router.get('/:seasonID/:matchweekNumber', ensureLogin, catchErrors(getMatchweek))
+
+router.put('/geekLeagueHistory/:userID/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
 
 router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
 

@@ -135,6 +135,22 @@ exports.getPlayersSeason = async(req, res) => {
     })
 }
 
+exports.saveGeekLeagueHistory = async(req, res) => {
+    const {
+        userID,
+        geekLeagueID
+    } = req.params
+    await User.findByIdAndUpdate(userID, {
+        geekLeagueHistory: geekLeagueID
+    })
+    res.status(200).json({
+        message: {
+            en: 'User geekLeague history updated.',
+            fr: `Historique ligue geek de l'utilisateur actualisé.`
+        }
+    })
+}
+
 exports.saveFavTeam = async(req, res) => {
     const {
         seasonID
