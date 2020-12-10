@@ -80,6 +80,10 @@ const UserSchema = new Schema({
                 type: Number,
                 default: 0
             },
+            numberExacts: {
+                type: Number,
+                default: 0
+            },
             bonusPoints: {
                 type: Number,
                 default: 0

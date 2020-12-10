@@ -88,10 +88,12 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     })
     let matchweekPoints = 0;
     let numberCorrects = 0;
+    let numberExacts = 0;
     let bonusPoints = 0
     user.seasons[seasonIndex].matchweeks[matchweekIndex].pronogeeks.forEach(pronogeek => {
         if (pronogeek.points) matchweekPoints += parseInt(pronogeek.points)
         if (pronogeek.correct) numberCorrects++
+            if (pronogeek.exact) numberExacts++
     })
     switch (numberCorrects) {
         case 5:
@@ -119,6 +121,7 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     // Update matchweek points on user profile
     user.seasons[seasonIndex].matchweeks[matchweekIndex].points = parseInt(matchweekPoints)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].numberCorrects = parseInt(numberCorrects)
+    user.seasons[seasonIndex].matchweeks[matchweekIndex].numberExacts = parseInt(numberExacts)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPoints)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
 
