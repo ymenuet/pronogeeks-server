@@ -50,6 +50,19 @@ exports.getLeague = async(req, res) => {
             path: 'seasons',
             model: 'Season'
         })
+        .populate({
+            path: 'geeks',
+            populate: {
+                path: 'seasons',
+                populate: {
+                    path: 'matchweeks',
+                    populate: {
+                        path: 'pronogeeks',
+                        model: 'Pronogeek'
+                    }
+                }
+            }
+        })
     res.status(200).json({
         geekLeague
     })
