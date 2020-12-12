@@ -76,10 +76,17 @@ exports.getMatchweekRanking = async(req, res) => {
     } = req.params
     const geekLeague = await GeekLeague.findById(geekLeagueID)
     const geeks = await User.find({
-        _id: {
-            $in: geekLeague.geeks
-        }
-    })
+            _id: {
+                $in: geekLeague.geeks
+            }
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'favTeam',
+                model: 'Team'
+            }
+        })
     const rankedGeeks = geeks.sort((a, b) => {
         const seasonA = a.seasons.filter(seas => seas.season.toString() === seasonID.toString())
         const seasonB = b.seasons.filter(seas => seas.season.toString() === seasonID.toString())
