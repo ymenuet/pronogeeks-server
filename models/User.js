@@ -58,6 +58,30 @@ const UserSchema = new Schema({
             type: Number,
             default: 0
         },
+        numberCorrects: {
+            type: Number,
+            default: 0
+        },
+        initialNumberCorrects: {
+            type: Number,
+            default: 0
+        },
+        numberExacts: {
+            type: Number,
+            default: 0
+        },
+        initialNumberExacts: {
+            type: Number,
+            default: 0
+        },
+        bonusFavTeam: {
+            type: Number,
+            default: 0
+        },
+        initialBonusFavTeam: {
+            type: Number,
+            default: 0
+        },
         provisionalRanking: [{
             type: Schema.Types.ObjectId,
             ref: 'Team'
