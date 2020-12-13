@@ -63,6 +63,16 @@ exports.getLeague = async(req, res) => {
                 }
             }
         })
+        .populate({
+            path: 'geeks',
+            populate: {
+                path: 'seasons',
+                populate: {
+                    path: 'favTeam',
+                    model: 'Team'
+                }
+            }
+        })
     res.status(200).json({
         geekLeague
     })

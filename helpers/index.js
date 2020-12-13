@@ -89,7 +89,8 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     let matchweekPoints = 0;
     let numberCorrects = 0;
     let numberExacts = 0;
-    let bonusPoints = 0;
+    let bonusPointsCorrects = 0;
+    let bonusPointsExacts = 0;
     let bonusFavTeam = false;
     user.seasons[seasonIndex].matchweeks[matchweekIndex].pronogeeks.forEach(pronogeek => {
         if (pronogeek.points) matchweekPoints += parseInt(pronogeek.points)
@@ -99,25 +100,48 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     })
     switch (numberCorrects) {
         case 5:
-            bonusPoints = 50
+            bonusPointsCorrects = 50
             break;
         case 6:
-            bonusPoints = 100
+            bonusPointsCorrects = 100
             break;
         case 7:
-            bonusPoints = 200
+            bonusPointsCorrects = 200
             break;
         case 8:
-            bonusPoints = 300
+            bonusPointsCorrects = 300
             break;
         case 9:
-            bonusPoints = 500
+            bonusPointsCorrects = 500
             break;
         case 10:
-            bonusPoints = 700
+            bonusPointsCorrects = 700
             break;
         default:
-            bonusPoints = 0
+            bonusPointsCorrects = 0
+    }
+
+    switch (numberExacts) {
+        case 5:
+            bonusPointsExacts = 50
+            break;
+        case 6:
+            bonusPointsExacts = 100
+            break;
+        case 7:
+            bonusPointsExacts = 200
+            break;
+        case 8:
+            bonusPointsExacts = 300
+            break;
+        case 9:
+            bonusPointsExacts = 500
+            break;
+        case 10:
+            bonusPointsExacts = 700
+            break;
+        default:
+            bonusPointsExacts = 0
     }
 
     // Update matchweek points on user profile
@@ -125,13 +149,24 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusFavTeam = bonusFavTeam
     user.seasons[seasonIndex].matchweeks[matchweekIndex].numberCorrects = parseInt(numberCorrects)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].numberExacts = parseInt(numberExacts)
-    user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPoints)
+    user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPointsCorrects) + parseInt(bonusPointsExacts)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
 
     // Update season points on user profile
     let seasonPoints = user.seasons[seasonIndex].initialPoints || 0;
-    user.seasons[seasonIndex].matchweeks.forEach(matchweek => seasonPoints += matchweek.totalPoints)
+    let seasonCorrects = user.seasons[seasonIndex].initialNumberCorrects || 0;
+    let seasonExacts = user.seasons[seasonIndex].initialNumberExacts || 0;
+    let seasonBonusFavTeam = user.seasons[seasonIndex].initialBonusFavTeam || 0;
+    user.seasons[seasonIndex].matchweeks.forEach(matchweek => {
+        seasonPoints += matchweek.totalPoints
+        seasonCorrects += matchweek.numberCorrects
+        seasonExacts += matchweek.numberExacts
+        seasonBonusFavTeam += matchweek.bonusFavTeam ? 1 : 0
+    })
     user.seasons[seasonIndex].totalPoints = seasonPoints
+    user.seasons[seasonIndex].numberCorrects = seasonCorrects
+    user.seasons[seasonIndex].numberExacts = seasonExacts
+    user.seasons[seasonIndex].bonusFavTeam = seasonBonusFavTeam
 
     return user
 }
