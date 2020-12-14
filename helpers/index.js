@@ -150,7 +150,7 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     user.seasons[seasonIndex].matchweeks[matchweekIndex].numberCorrects = parseInt(numberCorrects)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].numberExacts = parseInt(numberExacts)
     user.seasons[seasonIndex].matchweeks[matchweekIndex].bonusPoints = parseInt(bonusPointsCorrects) + parseInt(bonusPointsExacts)
-    user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints + bonusPoints)
+    user.seasons[seasonIndex].matchweeks[matchweekIndex].totalPoints = parseInt(matchweekPoints) + parseInt(bonusPointsCorrects) + parseInt(bonusPointsExacts)
 
     // Update season points on user profile
     let seasonPoints = user.seasons[seasonIndex].initialPoints || 0;
