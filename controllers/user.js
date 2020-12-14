@@ -123,12 +123,19 @@ exports.getPlayersSeason = async(req, res) => {
         seasonID
     } = req.params
     const users = await User.find({
-        seasons: {
-            $elemMatch: {
-                season: seasonID
+            seasons: {
+                $elemMatch: {
+                    season: seasonID
+                }
             }
-        }
-    })
+        })
+        .populate({
+            path: 'seasons',
+            populate: {
+                path: 'favTeam',
+                model: 'Team'
+            }
+        })
     users.forEach(user => user.password = undefined)
     res.status(200).json({
         users
