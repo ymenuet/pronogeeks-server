@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
     ensureLogin,
+    checkRole,
     catchErrors
 } = require('../middlewares/index')
 
@@ -15,6 +16,7 @@ const {
     getUser,
     saveGeekLeagueHistory,
     confirmUser,
+    updateSeasonPoints,
     deleteUserAccount
 } = require('../controllers/user')
 
@@ -23,6 +25,8 @@ router.get('/users', ensureLogin, catchErrors(getUsers))
 router.get('/geek/:userID', catchErrors(getUser))
 
 router.get('/players/:seasonID', ensureLogin, catchErrors(getPlayersSeason))
+
+router.get('/updatePoints/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(updateSeasonPoints))
 
 router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
 

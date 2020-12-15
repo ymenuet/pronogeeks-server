@@ -210,6 +210,47 @@ exports.confirmUser = async(req, res) => {
     })
 }
 
+exports.updateSeasonPoints = async(req, res) => {
+    const {
+        seasonID
+    } = req.params
+    const users = await User.find({
+        seasons: {
+            $elemMatch: {
+                season: seasonID
+            }
+        }
+    })
+    await Promise.all(users.map(async user => {
+        let seasonIndex;
+        user.seasons.forEach((season, i) => {
+            if (season.season._id.toString() == seasonID) seasonIndex = i
+        })
+        let seasonPoints = user.seasons[seasonIndex].initialPoints || 0;
+        let seasonCorrects = user.seasons[seasonIndex].initialNumberCorrects || 0;
+        let seasonExacts = user.seasons[seasonIndex].initialNumberExacts || 0;
+        let seasonBonusFavTeam = user.seasons[seasonIndex].initialBonusFavTeam || 0;
+        user.seasons[seasonIndex].matchweeks.forEach(matchweek => {
+            seasonPoints += matchweek.totalPoints
+            seasonCorrects += matchweek.numberCorrects
+            seasonExacts += matchweek.numberExacts
+            seasonBonusFavTeam += matchweek.bonusFavTeam ? 1 : 0
+        })
+        user.seasons[seasonIndex].totalPoints = seasonPoints
+        user.seasons[seasonIndex].numberCorrects = seasonCorrects
+        user.seasons[seasonIndex].numberExacts = seasonExacts
+        user.seasons[seasonIndex].bonusFavTeam = seasonBonusFavTeam
+
+        await user.save()
+    }))
+    res.status(200).json({
+        message: {
+            en: `Points updated for season ${seasonID}.`,
+            fr: `Points actualisés pour la saison ${seasonID}.`
+        }
+    })
+}
+
 exports.deleteUserAccount = async(req, res) => {
     const {
         userID
