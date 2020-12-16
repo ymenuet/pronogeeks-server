@@ -122,23 +122,29 @@ exports.updateUserPoints = (user, seasonID, fixture) => {
     }
 
     switch (numberExacts) {
-        case 5:
+        case 3:
             bonusPointsExacts = 50
             break;
-        case 6:
+        case 4:
             bonusPointsExacts = 100
             break;
-        case 7:
+        case 5:
             bonusPointsExacts = 200
             break;
-        case 8:
+        case 6:
             bonusPointsExacts = 300
             break;
-        case 9:
+        case 7:
             bonusPointsExacts = 500
             break;
-        case 10:
+        case 8:
             bonusPointsExacts = 700
+            break;
+        case 9:
+            bonusPointsExacts = 1000
+            break;
+        case 10:
+            bonusPointsExacts = 1500
             break;
         default:
             bonusPointsExacts = 0

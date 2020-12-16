@@ -230,18 +230,21 @@ exports.updateSeasonPoints = async(req, res) => {
         let seasonCorrects = user.seasons[seasonIndex].initialNumberCorrects || 0;
         let seasonExacts = user.seasons[seasonIndex].initialNumberExacts || 0;
         let seasonBonusFavTeam = user.seasons[seasonIndex].initialBonusFavTeam || 0;
-        user.seasons[seasonIndex].matchweeks.forEach(matchweek => {
-            seasonPoints += matchweek.totalPoints
-            seasonCorrects += matchweek.numberCorrects
-            seasonExacts += matchweek.numberExacts
-            seasonBonusFavTeam += matchweek.bonusFavTeam ? 1 : 0
-        })
-        user.seasons[seasonIndex].totalPoints = seasonPoints
-        user.seasons[seasonIndex].numberCorrects = seasonCorrects
-        user.seasons[seasonIndex].numberExacts = seasonExacts
-        user.seasons[seasonIndex].bonusFavTeam = seasonBonusFavTeam
 
-        await user.save()
+        if (user.seasons[seasonIndex].matchweeks && user.seasons[seasonIndex].matchweeks.length > 0) {
+            user.seasons[seasonIndex].matchweeks.forEach(matchweek => {
+                seasonPoints += matchweek.totalPoints
+                seasonCorrects += matchweek.numberCorrects
+                seasonExacts += matchweek.numberExacts
+                seasonBonusFavTeam += matchweek.bonusFavTeam ? 1 : 0
+            })
+            user.seasons[seasonIndex].totalPoints = seasonPoints
+            user.seasons[seasonIndex].numberCorrects = seasonCorrects
+            user.seasons[seasonIndex].numberExacts = seasonExacts
+            user.seasons[seasonIndex].bonusFavTeam = seasonBonusFavTeam
+
+            await user.save()
+        }
     }))
     res.status(200).json({
         message: {
