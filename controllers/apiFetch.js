@@ -305,9 +305,10 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
     const fixtureUpdatedOdds = await Promise.all(fixturesLeftToPlay.map(async fixture => {
         const odd = await getWinnerOddByFixtureFromAPI(fixture.apiFixtureID)
 
-        fixture = calculateOdds(odd, fixture)
-
-        await fixture.save()
+        if (odd) {
+            fixture = calculateOdds(odd, fixture)
+            await fixture.save()
+        }
 
         return fixture
     }))
