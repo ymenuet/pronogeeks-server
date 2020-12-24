@@ -9,7 +9,6 @@ const {
 const {
     newLeagueProcess,
     getLeague,
-    getMatchweekRanking,
     getUserLeagues,
     editLeague,
     deleteLeague,
@@ -19,8 +18,6 @@ const {
 router.post('/', ensureLogin, catchErrors(newLeagueProcess))
 
 router.get('/:geekLeagueID', ensureLogin, catchErrors(getLeague))
-
-router.get('/ranking/:geekLeagueID/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, catchErrors(getMatchweekRanking))
 
 router.get('/', ensureLogin, catchErrors(getUserLeagues))
 
