@@ -63,6 +63,10 @@ exports.fetchSeasonRankingFromApi = async(req, res) => {
         })
     }))
 
+    season.rankedTeams = rankedTeams
+
+    await season.save()
+
     res.status(200).json({
         rankedTeams
     })

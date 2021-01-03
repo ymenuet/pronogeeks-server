@@ -43,8 +43,6 @@ exports.getSeason = async(req, res) => {
     const {
         seasonID
     } = req.params
-    const season = await Season.findById(seasonID)
-    const teams = season.rankedTeams
     const user = await User.findOne({
         _id: req.user._id
     })
@@ -61,7 +59,7 @@ exports.getSeason = async(req, res) => {
         const newSeason = {
             season: seasonID,
             totalPoints: 0,
-            provisionalRanking: teams,
+            provisionalRanking: [],
             matchweeks: []
         }
         user.seasons.push(newSeason)

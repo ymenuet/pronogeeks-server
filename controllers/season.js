@@ -34,11 +34,6 @@ exports.getSeason = async(req, res) => {
         .populate({
             path: 'rankedTeams',
             model: 'Team',
-            options: {
-                sort: {
-                    name: 1
-                }
-            }
         })
     res.status(200).json({
         season
