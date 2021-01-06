@@ -1,3 +1,10 @@
+const Team = require('../models/Team')
+const Season = require('../models/Season')
+
+const {
+    getSeasonRankingFromAPI
+} = require('../helpers/apiFootball')
+
 exports.generateRandomToken = tokenLength => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let token = ''
@@ -190,4 +197,36 @@ exports.calculateOdds = (odd, fixture) => {
     fixture.lastOddsUpdate = Date.now()
 
     return fixture
+}
+
+exports.fetchAndSaveSeasonRanking = async seasonID => {
+    const season = await Season.findById(seasonID)
+    const leagueID = season.apiLeagueID
+
+    const rankingAPI = await getSeasonRankingFromAPI(leagueID)
+
+    const rankedTeams = await Promise.all(rankingAPI[0].map(async team => {
+        return await Team.findOneAndUpdate({
+            apiTeamID: team.team_id,
+            season: seasonID
+        }, {
+            rank: team.rank,
+            points: team.points,
+            goalsDiff: team.goalsDiff,
+            matchsPlayed: team.all.matchsPlayed,
+            win: team.all.win,
+            draw: team.all.draw,
+            lose: team.all.lose,
+            goalsFor: team.all.goalsFor,
+            goalsAgainst: team.all.goalsAgainst
+        }, {
+            new: true
+        })
+    }))
+
+    season.rankedTeams = rankedTeams
+
+    await season.save()
+
+    return rankedTeams
 }

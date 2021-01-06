@@ -9,12 +9,12 @@ const {
     calculateCorrectPronogeekPoints,
     updateUserPoints,
     determineWinnerFixture,
-    calculateOdds
+    calculateOdds,
+    fetchAndSaveSeasonRanking
 } = require('../helpers')
 
 const {
     getTeamsBySeasonFromAPI,
-    getSeasonRankingFromAPI,
     getFixturesByMatchweekFromAPI,
     getWinnerOddByFixtureFromAPI,
 } = require('../helpers/apiFootball')
@@ -39,33 +39,8 @@ exports.fetchSeasonRankingFromApi = async(req, res) => {
     const {
         seasonID
     } = req.params
-    const season = await Season.findById(seasonID)
-    const leagueID = season.apiLeagueID
 
-    const rankingAPI = await getSeasonRankingFromAPI(leagueID)
-
-    const rankedTeams = await Promise.all(rankingAPI[0].map(async team => {
-        return await Team.findOneAndUpdate({
-            apiTeamID: team.team_id,
-            season: seasonID
-        }, {
-            rank: team.rank,
-            points: team.points,
-            goalsDiff: team.goalsDiff,
-            matchsPlayed: team.all.matchsPlayed,
-            win: team.all.win,
-            draw: team.all.draw,
-            lose: team.all.lose,
-            goalsFor: team.all.goalsFor,
-            goalsAgainst: team.all.goalsAgainst
-        }, {
-            new: true
-        })
-    }))
-
-    season.rankedTeams = rankedTeams
-
-    await season.save()
+    const rankedTeams = await fetchAndSaveSeasonRanking(seasonID)
 
     res.status(200).json({
         rankedTeams
@@ -136,6 +111,8 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
     // Fetch fixtures of the matchweek
     const fixturesAPI = await getFixturesByMatchweekFromAPI(leagueID, matchweekNumber)
 
+    let rankingToUpdate = false
+
     const fixtures = await Promise.all(fixturesAPI.map(async fixture => {
         const homeTeam = await Team.findOne({
             apiTeamID: fixture.homeTeam.team_id,
@@ -151,6 +128,8 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         const fixtureOdds = await Fixture.findOne({
             apiFixtureID: fixture.fixture_id
         })
+
+        if (!rankingToUpdate) rankingToUpdate = matchFinished(fixture.statusShort) && fixture.statusShort !== fixtureOdds.statusShort
 
         const {
             goalsHomeTeam,
@@ -281,6 +260,8 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         }
         return updatedFixture
     }))
+
+    if (rankingToUpdate) await fetchAndSaveSeasonRanking(seasonID)
 
     res.status(200).json({
         fixtures
