@@ -88,8 +88,10 @@ exports.createSeason = async(req, res) => {
     })
 }
 
-exports.updateSeason = async(req, res) => {
-    const season = await Season.findByIdAndUpdate(req.params.seasonID, req.body, {
+exports.closeRankingsSeason = async(req, res) => {
+    const season = await Season.findByIdAndUpdate(req.params.seasonID, {
+        provRankingOpen: false
+    }, {
         new: true
     })
     res.status(200).json({

@@ -18,6 +18,10 @@ const SeasonSchema = new Schema({
     countryCode: String,
     logo: String,
     flag: String,
+    provRankingOpen: {
+        type: Boolean,
+        default: true
+    },
     fixtures: [{
         type: Schema.Types.ObjectId,
         ref: 'Fixture'

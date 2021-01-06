@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
     createSeason,
-    updateSeason,
+    closeRankingsSeason,
     getSeason,
     getUndergoingSeasons,
     getMatchweek,
@@ -28,10 +28,10 @@ router.get('/:seasonID', catchErrors(getSeason))
 
 router.get('/:seasonID/:matchweekNumber', catchErrors(getMatchweek))
 
-router.post('/', ensureLogin, checkRole('SUPER GEEK'), catchErrors(createSeason))
+router.post('/', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(createSeason))
 
-router.put('/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(updateSeason))
+router.put('/closeRankings/:seasonID', ensureLogin, catchErrors(closeRankingsSeason))
 
-router.delete('/:seasonID', ensureLogin, checkRole('SUPER GEEK'), catchErrors(deleteSeason))
+router.delete('/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(deleteSeason))
 
 module.exports = router;

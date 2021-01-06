@@ -156,6 +156,33 @@ exports.saveGeekLeagueHistory = async(req, res) => {
     })
 }
 
+exports.updateProvRanking = async(req, res) => {
+    const {
+        seasonID,
+    } = req.params
+    const {
+        userProvRanking
+    } = req.body
+    const user = await User.findOne({
+        _id: req.user._id
+    })
+    let seasonIndex;
+    user.seasons.map((seas, i) => {
+        if (seas.season.toString() === seasonID) {
+            seasonIndex = i
+        }
+        return seas
+    })
+    user.seasons[seasonIndex].provisionalRanking = userProvRanking
+    await user.save()
+    res.status(200).json({
+        message: {
+            en: `Provisional ranking updated.`,
+            fr: `Classement prévisionnel actualisé.`
+        }
+    })
+}
+
 exports.saveFavTeam = async(req, res) => {
     const {
         seasonID
@@ -173,7 +200,7 @@ exports.saveFavTeam = async(req, res) => {
         }
     })
     user.seasons[seasonIndex].favTeam = favTeam
-    user.save()
+    await user.save()
     res.status(200).json({
         message: {
             en: 'Favorite team saved.',

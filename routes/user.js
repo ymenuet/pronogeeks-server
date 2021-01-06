@@ -15,6 +15,7 @@ const {
     getUsers,
     getUser,
     saveGeekLeagueHistory,
+    updateProvRanking,
     confirmUser,
     updateSeasonPoints,
     deleteUserAccount
@@ -33,6 +34,8 @@ router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
 router.get('/:seasonID/:matchweekNumber', ensureLogin, catchErrors(getMatchweek))
 
 router.put('/geekLeagueHistory/:userID/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
+
+router.put('/provisionalRanking/:seasonID', ensureLogin, catchErrors(updateProvRanking))
 
 router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
 
