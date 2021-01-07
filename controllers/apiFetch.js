@@ -19,6 +19,9 @@ const {
     getWinnerOddByFixtureFromAPI,
 } = require('../helpers/apiFootball')
 
+let updateRankingTimeout;
+const MILLISECONDS_IN_15_MINUTES = 1000 * 60 * 15
+
 
 exports.fetchAllSeasonTeamsFromApi = async(req, res) => {
     const {
@@ -261,7 +264,10 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         return updatedFixture
     }))
 
-    if (rankingToUpdate) await fetchAndSaveSeasonRanking(seasonID)
+    if (rankingToUpdate) {
+        if (updateRankingTimeout) clearTimeout(updateRankingTimeout)
+        updateRankingTimeout = setTimeout(() => fetchAndSaveSeasonRanking(seasonID), MILLISECONDS_IN_15_MINUTES)
+    }
 
     res.status(200).json({
         fixtures
