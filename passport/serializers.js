@@ -9,52 +9,70 @@ passport.deserializeUser((userIdFromSession, cb) => {
     User.findOne({
             _id: userIdFromSession
         })
-        .populate({
-            path: 'friends',
-            model: 'User'
-        })
-        .populate({
+        .populate([{
             path: 'seasons',
-            populate: {
+            populate: [{
                 path: 'season',
-                model: 'Season'
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
+                model: 'Season',
+                populate: [{
+                    path: 'fixtures',
+                    model: 'Fixture',
+                    populate: [{
+                        path: 'awayTeam',
+                        model: 'Team'
+                    }, {
+                        path: 'homeTeam',
+                        model: 'Team'
+                    }]
+                }, {
+                    path: 'rankedTeams',
+                    model: 'Team'
+                }]
+            }, {
                 path: 'matchweeks',
                 populate: {
                     path: 'pronogeeks',
-                    model: 'Pronogeek'
+                    model: 'Pronogeek',
+                    populate: {
+                        path: 'fixture',
+                        model: 'Fixture',
+                        populate: [{
+                            path: 'awayTeam',
+                            model: 'Team'
+                        }, {
+                            path: 'homeTeam',
+                            model: 'Team'
+                        }]
+                    }
                 }
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
+            }, {
                 path: 'provisionalRanking',
                 model: 'Team'
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
+            }, {
                 path: 'favTeam',
                 model: 'Team'
-            }
-        })
-        .populate({
+            }]
+        }, {
             path: 'geekLeagues',
-            model: 'GeekLeague'
-        })
-        .populate({
-            path: 'geekLeagues',
+            model: 'GeekLeague',
             populate: {
                 path: 'geeks',
-                model: 'User'
+                model: 'User',
+                populate: {
+                    path: 'seasons',
+                    populate: [{
+                        path: 'favTeam',
+                        model: 'Team'
+                    }, {
+                        path: 'matchweeks',
+                        populate: {
+                            path: 'pronogeeks',
+                            model: 'Pronogeek'
+                        }
+                    }]
+                }
             }
-        })
+        }])
         .then(userDocument => {
             if (userDocument) userDocument.password = undefined
             cb(null, userDocument);
