@@ -22,7 +22,7 @@ exports.getSeasonsByCountry = async(req, res) => {
 
 exports.getSeason = async(req, res) => {
     const season = await Season.findById(req.params.seasonID)
-        .populate({
+        .populate([{
             path: 'fixtures',
             model: 'Fixture',
             options: {
@@ -30,11 +30,17 @@ exports.getSeason = async(req, res) => {
                     date: 1
                 }
             },
-        })
-        .populate({
+            populate: [{
+                path: 'awayTeam',
+                model: 'Team'
+            }, {
+                path: 'homeTeam',
+                model: 'Team'
+            }]
+        }, {
             path: 'rankedTeams',
-            model: 'Team',
-        })
+            model: 'Team'
+        }])
     res.status(200).json({
         season
     })

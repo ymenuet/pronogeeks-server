@@ -143,83 +143,65 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         } = determineWinnerFixture(fixture, fixtureOdds)
 
         const updatedFixture = await Fixture.findOneAndUpdate({
-            apiFixtureID: fixture.fixture_id,
-            season: seasonID
-        }, {
-            matchweek: matchweekNumber,
-            date: fixture.event_date,
-            homeTeam: homeTeamId,
-            awayTeam: awayTeamId,
-            goalsHomeTeam,
-            goalsAwayTeam,
-            winner,
-            status: fixture.status,
-            statusShort: fixture.statusShort,
-            timeElapsed,
-            lastScoreUpdate: Date.now()
-        }, {
-            new: true
-        })
+                apiFixtureID: fixture.fixture_id,
+                season: seasonID
+            }, {
+                matchweek: matchweekNumber,
+                date: fixture.event_date,
+                homeTeam: homeTeamId,
+                awayTeam: awayTeamId,
+                goalsHomeTeam,
+                goalsAwayTeam,
+                winner,
+                status: fixture.status,
+                statusShort: fixture.statusShort,
+                timeElapsed,
+                lastScoreUpdate: Date.now()
+            }, {
+                new: true
+            })
+            .populate([{
+                path: 'homeTeam',
+                model: 'Team'
+            }, {
+                path: 'awayTeam',
+                model: 'Team'
+            }])
         if (matchFinished(updatedFixture.statusShort)) {
             const userIDs = []
             const pronogeeks = await Pronogeek.find({
                     fixture: updatedFixture._id
                 })
-                .populate({
+                .populate([{
                     path: 'fixture',
-                    model: 'Fixture'
-                })
-                .populate({
-                    path: 'fixture',
-                    populate: {
-                        path: 'homeTeam',
-                        model: 'Team'
-                    }
-                })
-                .populate({
-                    path: 'fixture',
-                    populate: {
+                    model: 'Fixture',
+                    populate: [{
                         path: 'awayTeam',
                         model: 'Team'
-                    }
-                })
-                .populate({
+                    }, {
+                        path: 'homeTeam',
+                        model: 'Team'
+                    }]
+                }, {
                     path: 'geek',
-                    model: 'User'
-                })
-                .populate({
-                    path: 'geek',
+                    model: 'User',
                     populate: {
                         path: 'seasons',
-                        populate: {
+                        populate: [{
                             path: 'season',
                             model: 'Season'
-                        }
-                    }
-                })
-                .populate({
-                    path: 'geek',
-                    populate: {
-                        path: 'seasons',
-                        populate: {
+                        }, {
                             path: 'favTeam',
                             model: 'Team'
-                        }
-                    }
-                })
-                .populate({
-                    path: 'geek',
-                    populate: {
-                        path: 'seasons',
-                        populate: {
+                        }, {
                             path: 'matchweek',
                             populate: {
                                 path: 'pronogeeks',
                                 model: 'Pronogeek'
                             }
-                        }
+                        }]
                     }
-                })
+                }])
 
             await Promise.all(pronogeeks.map(async pronogeek => {
                 if (pronogeek.winner === winner && !pronogeek.addedToProfile && pronogeek.geek) {
@@ -241,16 +223,13 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                         path: 'seasons',
                         populate: {
                             path: 'season',
-                            model: 'Season'
-                        }
-                    })
-                    .populate({
-                        path: 'seasons',
-                        populate: {
-                            path: 'matchweeks',
+                            model: 'Season',
                             populate: {
-                                path: 'pronogeeks',
-                                model: 'Pronogeek'
+                                path: 'matchweeks',
+                                populate: {
+                                    path: 'pronogeeks',
+                                    model: 'Pronogeek'
+                                }
                             }
                         }
                     })
