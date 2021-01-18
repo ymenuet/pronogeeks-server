@@ -1,6 +1,9 @@
 const passport = require('passport');
 const User = require("../models/User");
 const transporter = require('../config/mailer')
+const {
+    userPopulator
+} = require('../populators');
 
 // Bcrypt to encrypt passwords
 const {
@@ -12,7 +15,7 @@ const bcryptSalt = 12;
 
 const {
     generateRandomToken
-} = require('../helpers')
+} = require('../helpers');
 
 exports.signupProcess = async(req, res, next) => {
     const {
@@ -156,6 +159,7 @@ exports.editProfileProcess = async(req, res) => {
         }, {
             new: true
         })
+        .populate(userPopulator)
         .catch(err => {
             res.status(500).json({
                 message: {

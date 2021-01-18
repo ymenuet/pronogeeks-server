@@ -41,6 +41,6 @@ router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
 
 router.put('/:userID/:confirmToken', catchErrors(confirmUser))
 
-router.delete('/:userID', ensureLogin, catchErrors(deleteUserAccount))
+router.delete('/', ensureLogin, catchErrors(deleteUserAccount))
 
 module.exports = router;

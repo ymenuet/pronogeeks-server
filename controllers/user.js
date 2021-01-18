@@ -280,14 +280,12 @@ exports.updateSeasonPoints = async(req, res) => {
 }
 
 exports.deleteUserAccount = async(req, res) => {
-    const {
-        userID
-    } = req.params
-    await User.findByIdAndDelete(userID)
+    const userID = req.user._id
     const pronogeeksUser = await Pronogeek.find({
         geek: userID
     })
-    pronogeeksUser.forEach(pronogeek => pronogeek.deleteOne())
+    await Promise.all(pronogeeksUser.map(async pronogeek => await pronogeek.deleteOne()))
+    await User.findByIdAndDelete(userID)
     res.status(200).json({
         message: {
             en: 'User deleted.',
