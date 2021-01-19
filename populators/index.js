@@ -62,3 +62,11 @@ exports.userPopulator = [{
         }
     }
 }]
+
+exports.populateHomeAndAwayTeams = [{
+    path: 'homeTeam',
+    model: 'Team'
+}, {
+    path: 'awayTeam',
+    model: 'Team'
+}]

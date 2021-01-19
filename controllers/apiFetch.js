@@ -19,8 +19,14 @@ const {
     getWinnerOddByFixtureFromAPI,
 } = require('../helpers/apiFootball')
 
-let updateRankingTimeout;
-const MILLISECONDS_IN_15_MINUTES = 1000 * 60 * 15
+const {
+    populateHomeAndAwayTeams
+} = require('../populators')
+
+const MILLISECONDS_IN_1_DAY = 1000 * 60 * 60 * 24
+const MILLISECONDS_IN_30_MINUTES = 1000 * 60 * 30
+const MILLISECONDS_IN_25_MINUTES = 1000 * 60 * 25
+let updateRankingTimeoutId;
 
 
 exports.fetchAllSeasonTeamsFromApi = async(req, res) => {
@@ -87,7 +93,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         const uniqueMatchweeks = []
         postponedFixturesDB.forEach(fixture => {
             if (!uniqueMatchweeks.includes(fixture.matchweek) &&
-                Date.now() - new Date(fixture.lastScoreUpdate).getTime() > 1000 * 60 * 60 * 24 &&
+                Date.now() - new Date(fixture.lastScoreUpdate).getTime() > MILLISECONDS_IN_1_DAY &&
                 Date.now() - new Date(fixture.date).getTime() > 0
             ) uniqueMatchweeks.push(fixture.matchweek)
         })
@@ -100,7 +106,9 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             const fixturesToUpdate = []
             matchweeksWithPostponedFixturesAPI.forEach(matchweek => fixturesToUpdate.push(...matchweek))
 
-            await Promise.all(fixturesToUpdate.map(async fixture => {
+            const postponedFixturesToUpdate = fixturesToUpdate.filter(fixture => postponedFixturesDB.map(fixtureDB => fixtureDB.apiFixtureID.toString()).includes(fixture.fixture_id.toString()))
+
+            await Promise.all(postponedFixturesToUpdate.map(async fixture => {
                 await Fixture.findOneAndUpdate({
                     apiFixtureID: fixture.fixture_id
                 }, {
@@ -116,6 +124,8 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
 
     let rankingToUpdate = false
 
+    const usersToUpdate = []
+
     const fixtures = await Promise.all(fixturesAPI.map(async fixture => {
         const homeTeam = await Team.findOne({
             apiTeamID: fixture.homeTeam.team_id,
@@ -128,11 +138,15 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         })
         const awayTeamId = awayTeam._id
 
-        const fixtureOdds = await Fixture.findOne({
-            apiFixtureID: fixture.fixture_id
-        })
+        let fixtureFromDB = await Fixture.findOne({
+                apiFixtureID: fixture.fixture_id,
+                season: seasonID
+            })
+            .populate(populateHomeAndAwayTeams)
 
-        if (!rankingToUpdate) rankingToUpdate = matchFinished(fixture.statusShort) && fixture.statusShort !== fixtureOdds.statusShort
+        const matchFinishedSinceLastUpdate = matchFinished(fixture.statusShort) && (fixture.statusShort !== fixtureFromDB.statusShort)
+
+        if (!rankingToUpdate) rankingToUpdate = matchFinishedSinceLastUpdate
 
         const {
             goalsHomeTeam,
@@ -140,112 +154,92 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             timeElapsed,
             winner,
             points
-        } = determineWinnerFixture(fixture, fixtureOdds)
+        } = determineWinnerFixture(fixture, fixtureFromDB)
 
-        const updatedFixture = await Fixture.findOneAndUpdate({
-                apiFixtureID: fixture.fixture_id,
-                season: seasonID
-            }, {
-                matchweek: matchweekNumber,
-                date: fixture.event_date,
-                homeTeam: homeTeamId,
-                awayTeam: awayTeamId,
-                goalsHomeTeam,
-                goalsAwayTeam,
-                winner,
-                status: fixture.status,
-                statusShort: fixture.statusShort,
-                timeElapsed,
-                lastScoreUpdate: Date.now()
-            }, {
-                new: true
-            })
-            .populate([{
-                path: 'homeTeam',
-                model: 'Team'
-            }, {
-                path: 'awayTeam',
-                model: 'Team'
-            }])
-        if (matchFinished(updatedFixture.statusShort)) {
-            const userIDs = []
-            const pronogeeks = await Pronogeek.find({
-                    fixture: updatedFixture._id
-                })
-                .populate([{
-                    path: 'fixture',
-                    model: 'Fixture',
-                    populate: [{
-                        path: 'awayTeam',
-                        model: 'Team'
-                    }, {
-                        path: 'homeTeam',
-                        model: 'Team'
-                    }]
+        if ((fixtureFromDB.timeElapsed != fixture.elapsed) || matchFinishedSinceLastUpdate) {
+
+            fixtureFromDB = await Fixture.findOneAndUpdate({
+                    apiFixtureID: fixture.fixture_id,
+                    season: seasonID
                 }, {
-                    path: 'geek',
-                    model: 'User',
-                    populate: {
-                        path: 'seasons',
-                        populate: [{
-                            path: 'season',
-                            model: 'Season'
-                        }, {
-                            path: 'favTeam',
-                            model: 'Team'
-                        }, {
-                            path: 'matchweek',
-                            populate: {
-                                path: 'pronogeeks',
-                                model: 'Pronogeek'
-                            }
-                        }]
-                    }
-                }])
-
-            await Promise.all(pronogeeks.map(async pronogeek => {
-                if (pronogeek.winner === winner && !pronogeek.addedToProfile && pronogeek.geek) {
-                    userIDs.push(pronogeek.geek._id)
-                    pronogeek = calculateCorrectPronogeekPoints(pronogeek, updatedFixture, points)
-                }
-
-                pronogeek.addedToProfile = true
-                await pronogeek.save()
-
-                return pronogeek
-            }))
-
-            await Promise.all(userIDs.map(async userID => {
-                let user = await User.findOne({
-                        _id: userID
+                    matchweek: matchweekNumber,
+                    date: fixture.event_date,
+                    homeTeam: homeTeamId,
+                    awayTeam: awayTeamId,
+                    goalsHomeTeam,
+                    goalsAwayTeam,
+                    winner,
+                    status: fixture.status,
+                    statusShort: fixture.statusShort,
+                    timeElapsed,
+                    lastScoreUpdate: Date.now()
+                }, {
+                    new: true
+                })
+                .populate(populateHomeAndAwayTeams)
+            if (matchFinished(fixtureFromDB.statusShort)) {
+                const pronogeeks = await Pronogeek.find({
+                        fixture: fixtureFromDB._id
                     })
-                    .populate({
-                        path: 'seasons',
+                    .populate([{
+                        path: 'fixture',
+                        model: 'Fixture',
+                        populate: populateHomeAndAwayTeams
+                    }, {
+                        path: 'geek',
+                        model: 'User',
                         populate: {
-                            path: 'season',
-                            model: 'Season',
+                            path: 'seasons',
                             populate: {
-                                path: 'matchweeks',
-                                populate: {
-                                    path: 'pronogeeks',
-                                    model: 'Pronogeek'
-                                }
+                                path: 'favTeam',
+                                model: 'Team'
                             }
                         }
-                    })
-                if (user) {
-                    user = updateUserPoints(user, seasonID, updatedFixture)
-                    await user.save()
-                }
-                return user
-            }))
+                    }])
+
+                await Promise.all(pronogeeks.map(async pronogeek => {
+                    if (!pronogeek.addedToProfile) {
+                        if (pronogeek.winner === winner && pronogeek.geek) {
+                            const geekID = pronogeek.geek._id.toString()
+                            if (!usersToUpdate.includes(geekID)) usersToUpdate.push(geekID)
+                            pronogeek = calculateCorrectPronogeekPoints(pronogeek, fixtureFromDB, points)
+                        }
+
+                        pronogeek.addedToProfile = true
+                        await pronogeek.save()
+                    }
+                    return pronogeek
+                }))
+            }
         }
-        return updatedFixture
+        return fixtureFromDB
+    }))
+
+    await Promise.all(usersToUpdate.map(async userID => {
+        let user = await User.findOne({
+                _id: userID
+            })
+            .populate({
+                path: 'seasons',
+                populate: {
+                    path: 'matchweeks',
+                    populate: {
+                        path: 'pronogeeks',
+                        model: 'Pronogeek'
+                    }
+                }
+            })
+
+        if (user) {
+            user = updateUserPoints(user, seasonID, matchweekNumber)
+            await user.save()
+        }
+        return user
     }))
 
     if (rankingToUpdate) {
-        if (updateRankingTimeout) clearTimeout(updateRankingTimeout)
-        updateRankingTimeout = setTimeout(() => fetchAndSaveSeasonRanking(seasonID), MILLISECONDS_IN_15_MINUTES)
+        clearTimeout(updateRankingTimeoutId)
+        updateRankingTimeoutId = setTimeout(() => fetchAndSaveSeasonRanking(seasonID), MILLISECONDS_IN_25_MINUTES)
     }
 
     res.status(200).json({
@@ -264,7 +258,7 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
         matchweek: matchweekNumber,
         season: seasonID
     })
-    const fixturesLeftToPlay = matchweekFixtures.filter(fixture => new Date(fixture.date).getTime() - Date.now() > 1000 * 60 * 30)
+    const fixturesLeftToPlay = matchweekFixtures.filter(fixture => new Date(fixture.date).getTime() - Date.now() > MILLISECONDS_IN_30_MINUTES)
     if (fixturesLeftToPlay.length < 1) return res.status(200).json({
         message: {
             en: `There is no game to update. They are all finished or starting in less than 30min.`,

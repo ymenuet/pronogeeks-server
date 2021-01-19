@@ -84,14 +84,14 @@ exports.calculateCorrectPronogeekPoints = (pronogeek, fixture, points) => {
     return pronogeek
 }
 
-exports.updateUserPoints = (user, seasonID, fixture) => {
+exports.updateUserPoints = (user, seasonID, matchweekNumber) => {
     let seasonIndex;
     user.seasons.forEach((season, i) => {
-        if (season.season._id.toString() == seasonID) seasonIndex = i
+        if (season.season.toString() == seasonID) seasonIndex = i
     })
     let matchweekIndex;
     user.seasons[seasonIndex].matchweeks.forEach((matchweek, i) => {
-        if (matchweek.number.toString() == fixture.matchweek.toString()) matchweekIndex = i
+        if (matchweek.number.toString() === matchweekNumber.toString()) matchweekIndex = i
     })
     let matchweekPoints = 0;
     let numberCorrects = 0;
@@ -191,9 +191,11 @@ exports.calculateOdds = (odd, fixture) => {
     else if (bwinOdds.length > 0) unibetOdds = bwinOdds[0]
     else unibetOdds = odd.bookmakers[0]
 
-    fixture.oddsWinHome = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Home')[0].odd * 10)
-    fixture.oddsDraw = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Draw')[0].odd * 10)
-    fixture.oddsWinAway = Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === 'Away')[0].odd * 10)
+    const extractOdd = filterValue => Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === filterValue)[0].odd * 10)
+
+    fixture.oddsWinHome = extractOdd('Home')
+    fixture.oddsDraw = extractOdd('Draw')
+    fixture.oddsWinAway = extractOdd('Away')
     fixture.lastOddsUpdate = Date.now()
 
     return fixture
