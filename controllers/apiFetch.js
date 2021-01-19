@@ -156,7 +156,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             points
         } = determineWinnerFixture(fixture, fixtureFromDB)
 
-        if ((fixtureFromDB.timeElapsed != fixture.elapsed) || matchFinishedSinceLastUpdate) {
+        if (!matchFinished(fixtureFromDB.statusShort)) {
 
             fixtureFromDB = await Fixture.findOneAndUpdate({
                     apiFixtureID: fixture.fixture_id,
@@ -177,6 +177,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                     new: true
                 })
                 .populate(populateHomeAndAwayTeams)
+
             if (matchFinished(fixtureFromDB.statusShort)) {
                 const pronogeeks = await Pronogeek.find({
                         fixture: fixtureFromDB._id
