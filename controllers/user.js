@@ -280,9 +280,7 @@ exports.updateSeasonPoints = async(req, res) => {
 }
 
 exports.deleteUserAccount = async(req, res) => {
-    const {
-        userID
-    } = req.params
+    const userID = req.user._id
     const pronogeeksUser = await Pronogeek.find({
         geek: userID
     })
