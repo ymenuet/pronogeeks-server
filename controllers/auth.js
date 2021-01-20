@@ -183,6 +183,7 @@ exports.editPhoto = async(req, res) => {
         }, {
             new: true
         })
+        .populate(userPopulator)
         .catch(err => {
             res.status(500).json({
                 message: {
@@ -254,6 +255,12 @@ exports.resetPwd = async(req, res) => {
     const renewToken = generateRandomToken(30)
     const user = await User.findOne({
         email
+    })
+    if (!user) return res.status(401).json({
+        message: {
+            en: 'This email is not linked to any account. Try another one or create a new account !',
+            fr: 'Aucun compte lié à cet email. Essaye avec un autre email ou crée-toi un compte !'
+        }
     })
     if (user.googleID) return res.status(401).json({
         message: {
