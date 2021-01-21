@@ -13,7 +13,9 @@ const {
     getCurrentUser,
     editPhoto,
     resetPwd,
-    updatePwd
+    updatePwd,
+    confirmUser,
+    deleteUserAccount
 } = require('../controllers/auth')
 
 const {
@@ -41,5 +43,9 @@ router.put('/editPic', ensureLogin, catchErrors(editPhoto))
 
 router.put('/reset-pwd', catchErrors(resetPwd))
 router.put('/new-pwd/:userID/:renewToken', catchErrors(updatePwd))
+
+router.put('/confirm/:userID/:confirmToken', catchErrors(confirmUser))
+
+router.delete('/', ensureLogin, catchErrors(deleteUserAccount))
 
 module.exports = router;

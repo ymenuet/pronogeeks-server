@@ -16,9 +16,7 @@ const {
     getUser,
     saveGeekLeagueHistory,
     updateProvRanking,
-    confirmUser,
     updateSeasonPoints,
-    deleteUserAccount
 } = require('../controllers/user')
 
 router.get('/users', ensureLogin, catchErrors(getUsers))
@@ -38,9 +36,5 @@ router.put('/geekLeagueHistory/:userID/:geekLeagueID', ensureLogin, catchErrors(
 router.put('/provisionalRanking/:seasonID', ensureLogin, catchErrors(updateProvRanking))
 
 router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
-
-router.put('/:userID/:confirmToken', catchErrors(confirmUser))
-
-router.delete('/', ensureLogin, catchErrors(deleteUserAccount))
 
 module.exports = router;

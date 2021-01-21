@@ -1,6 +1,4 @@
 const User = require('../models/User')
-const Season = require('../models/Season')
-const Pronogeek = require('../models/Pronogeek')
 
 exports.getUsers = async(req, res) => {
     const users = await User.find(null, null, {
@@ -209,32 +207,6 @@ exports.saveFavTeam = async(req, res) => {
     })
 }
 
-exports.confirmUser = async(req, res) => {
-    const {
-        userID,
-        confirmToken
-    } = req.params
-
-    const userToConfirm = await User.findById(userID)
-
-    if (userToConfirm.confirmToken !== confirmToken) return res.status(401).json({
-        message: {
-            en: `This link is not valid. Try to connect to your account.`,
-            fr: `Ce lien n'est pas valable. Essaye de te connecter à ton compte.`
-        }
-    })
-
-    await User.findByIdAndUpdate(userID, {
-        confirmed: true
-    })
-    res.status(200).json({
-        message: {
-            en: 'Email confirmed.',
-            fr: 'Email confirmé.'
-        }
-    })
-}
-
 exports.updateSeasonPoints = async(req, res) => {
     const {
         seasonID
@@ -275,21 +247,6 @@ exports.updateSeasonPoints = async(req, res) => {
         message: {
             en: `Points updated for season ${seasonID}.`,
             fr: `Points actualisés pour la saison ${seasonID}.`
-        }
-    })
-}
-
-exports.deleteUserAccount = async(req, res) => {
-    const userID = req.user._id
-    const pronogeeksUser = await Pronogeek.find({
-        geek: userID
-    })
-    await Promise.all(pronogeeksUser.map(async pronogeek => await pronogeek.deleteOne()))
-    await User.findByIdAndDelete(userID)
-    res.status(200).json({
-        message: {
-            en: 'User deleted.',
-            fr: 'Compte supprimé.'
         }
     })
 }

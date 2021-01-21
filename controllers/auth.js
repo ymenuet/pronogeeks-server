@@ -1,5 +1,6 @@
 const passport = require('passport');
 const User = require("../models/User");
+const Pronogeek = require('../models/Pronogeek')
 const transporter = require('../config/mailer')
 const {
     userPopulator
@@ -248,6 +249,32 @@ exports.googleCallback = (req, res, next) => {
     })(req, res, next)
 }
 
+exports.confirmUser = async(req, res) => {
+    const {
+        userID,
+        confirmToken
+    } = req.params
+
+    const userToConfirm = await User.findById(userID)
+
+    if (userToConfirm.confirmToken !== confirmToken) return res.status(401).json({
+        message: {
+            en: `This link is not valid. Try to connect to your account.`,
+            fr: `Ce lien n'est pas valable. Essaye de te connecter à ton compte.`
+        }
+    })
+
+    await User.findByIdAndUpdate(userID, {
+        confirmed: true
+    })
+    res.status(200).json({
+        message: {
+            en: 'Email confirmed.',
+            fr: 'Email confirmé.'
+        }
+    })
+}
+
 exports.resetPwd = async(req, res) => {
     const {
         email
@@ -318,6 +345,21 @@ exports.updatePwd = async(req, res) => {
         message: {
             en: 'Password updated.',
             fr: 'Mot de passe actualisé.'
+        }
+    })
+}
+
+exports.deleteUserAccount = async(req, res) => {
+    const userID = req.user._id
+    const pronogeeksUser = await Pronogeek.find({
+        geek: userID
+    })
+    await Promise.all(pronogeeksUser.map(async pronogeek => await pronogeek.deleteOne()))
+    await User.findByIdAndDelete(userID)
+    res.status(200).json({
+        message: {
+            en: 'User deleted.',
+            fr: 'Compte supprimé.'
         }
     })
 }
