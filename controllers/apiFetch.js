@@ -69,7 +69,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
     const season = await Season.findById(seasonID)
     const leagueID = season.apiLeagueID
 
-    // Cancel fetch if all matches already finished
+    // Cancel fetch if all matches already finished, not to use a request without needing to
     const matchweekFixtures = await Fixture.find({
         matchweek: matchweekNumber,
         season: seasonID
