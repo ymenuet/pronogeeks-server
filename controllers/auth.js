@@ -255,23 +255,28 @@ exports.confirmUser = async(req, res) => {
         confirmToken
     } = req.params
 
-    const userToConfirm = await User.findById(userID)
+    const userConfirmed = await User.findOneAndUpdate({
+        _id: userID,
+        confirmToken
+    }, {
+        confirmed: true
+    }, {
+        new: true
+    })
 
-    if (userToConfirm.confirmToken !== confirmToken) return res.status(401).json({
+    if (!userConfirmed) return res.status(401).json({
         message: {
             en: `This link is not valid. Try to connect to your account.`,
             fr: `Ce lien n'est pas valable. Essaye de te connecter à ton compte.`
         }
     })
 
-    await User.findByIdAndUpdate(userID, {
-        confirmed: true
-    })
     res.status(200).json({
         message: {
             en: 'Email confirmed.',
             fr: 'Email confirmé.'
-        }
+        },
+        username: userConfirmed.username
     })
 }
 
