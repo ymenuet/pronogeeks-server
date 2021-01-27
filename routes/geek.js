@@ -10,31 +10,31 @@ const {
 const {
     getSeason,
     getMatchweek,
-    getPlayersSeason,
+    getSeasonPlayers,
     saveFavTeam,
-    getUsers,
-    getUser,
+    getAllGeeks,
+    getGeek,
     saveGeekLeagueHistory,
     updateProvRanking,
     updateSeasonPoints,
-} = require('../controllers/user')
+} = require('../controllers/geek')
 
-router.get('/users', ensureLogin, catchErrors(getUsers))
+router.get('/', ensureLogin, catchErrors(getAllGeeks))
 
-router.get('/geek/:userID', catchErrors(getUser))
-
-router.get('/players/:seasonID', ensureLogin, catchErrors(getPlayersSeason))
+router.get('/players/:seasonID', ensureLogin, catchErrors(getSeasonPlayers))
 
 router.get('/updatePoints/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(updateSeasonPoints))
 
-router.get('/:seasonID', ensureLogin, catchErrors(getSeason))
+router.get('/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, catchErrors(getMatchweek))
 
-router.get('/:seasonID/:matchweekNumber', ensureLogin, catchErrors(getMatchweek))
+router.get('/season/:seasonID', ensureLogin, catchErrors(getSeason))
+
+router.get('/:userID', catchErrors(getGeek))
 
 router.put('/geekLeagueHistory/:userID/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
 
 router.put('/provisionalRanking/:seasonID', ensureLogin, catchErrors(updateProvRanking))
 
-router.put('/:seasonID/favTeam', ensureLogin, catchErrors(saveFavTeam))
+router.put('/favTeam/:seasonID', ensureLogin, catchErrors(saveFavTeam))
 
 module.exports = router;

@@ -1,39 +1,38 @@
 const User = require('../models/User')
 
-exports.getUsers = async(req, res) => {
-    const users = await User.find(null, null, {
+exports.getAllGeeks = async(req, res) => {
+    let geeks = await User.find(null, null, {
         sort: {
             username: 1
         }
     })
-    users.forEach(user => user.password = undefined)
+    geeks = geeks.map(geek => ({
+        ...geek._doc,
+        password: undefined
+    }))
     res.status(200).json({
-        users
+        geeks
     })
 }
 
-exports.getUser = async(req, res) => {
-    const user = await User.findById(req.params.userID)
+exports.getGeek = async(req, res) => {
+    const geek = await User.findById(req.params.userID)
         .populate({
             path: 'seasons',
-            populate: {
+            populate: [{
                 path: 'season',
                 model: 'Season'
-            }
-        })
-        .populate({
-            path: 'seasons',
-            populate: {
+            }, {
                 path: 'matchweeks',
                 populate: {
                     path: 'pronogeeks',
                     model: 'Pronogeek'
                 }
-            }
+            }]
         })
-    if (user) user.password = undefined
+    if (geek) geek.password = undefined
     res.status(200).json({
-        user
+        geek
     })
 }
 
@@ -41,10 +40,10 @@ exports.getSeason = async(req, res) => {
     const {
         seasonID
     } = req.params
-    const user = await User.findOne({
+    const geek = await User.findOne({
         _id: req.user._id
     })
-    let seasonExists = user.seasons.filter(seas => seas.season.toString() === seasonID)
+    let seasonExists = geek.seasons.filter(seas => seas.season.toString() === seasonID)
     if (seasonExists.length > 0) {
         seasonExists = seasonExists[0]
         if (!seasonExists.favTeam) return res.status(200).json({
@@ -60,8 +59,8 @@ exports.getSeason = async(req, res) => {
             provisionalRanking: [],
             matchweeks: []
         }
-        user.seasons.push(newSeason)
-        user.save()
+        geek.seasons.push(newSeason)
+        geek.save()
         return res.status(200).json({
             newSeason: true
         })
@@ -74,11 +73,11 @@ exports.getMatchweek = async(req, res) => {
         matchweekNumber
     } = req.params
 
-    const user = await User.findOne({
+    const geek = await User.findOne({
         _id: req.user._id
     })
     let index;
-    const season = user.seasons.filter((seas, i) => {
+    const season = geek.seasons.filter((seas, i) => {
         if (seas.season.toString() === seasonID) {
             index = i
             return true
@@ -105,8 +104,8 @@ exports.getMatchweek = async(req, res) => {
                 bonusPoints: 0,
                 totalPoints: 0
             }
-            user.seasons[index].matchweeks.push(newMatchweek)
-            user.save()
+            geek.seasons[index].matchweeks.push(newMatchweek)
+            geek.save()
             return res.status(200).json({
                 matchweek: newMatchweek
             })
@@ -114,11 +113,11 @@ exports.getMatchweek = async(req, res) => {
     }
 }
 
-exports.getPlayersSeason = async(req, res) => {
+exports.getSeasonPlayers = async(req, res) => {
     const {
         seasonID
     } = req.params
-    const users = await User.find({
+    let geeks = await User.find({
             seasons: {
                 $elemMatch: {
                     season: seasonID
@@ -132,9 +131,12 @@ exports.getPlayersSeason = async(req, res) => {
                 model: 'Team'
             }
         })
-    users.forEach(user => user.password = undefined)
+    geeks = geeks.map(geek => ({
+        ...geek._doc,
+        password: undefined
+    }))
     res.status(200).json({
-        users
+        geeks
     })
 }
 
@@ -161,18 +163,18 @@ exports.updateProvRanking = async(req, res) => {
     const {
         userProvRanking
     } = req.body
-    const user = await User.findOne({
+    const geek = await User.findOne({
         _id: req.user._id
     })
     let seasonIndex;
-    user.seasons.map((seas, i) => {
+    geek.seasons.map((seas, i) => {
         if (seas.season.toString() === seasonID) {
             seasonIndex = i
         }
         return seas
     })
-    user.seasons[seasonIndex].provisionalRanking = userProvRanking
-    await user.save()
+    geek.seasons[seasonIndex].provisionalRanking = userProvRanking
+    await geek.save()
     res.status(200).json({
         message: {
             en: `Provisional ranking updated.`,
@@ -188,17 +190,17 @@ exports.saveFavTeam = async(req, res) => {
     const {
         favTeam
     } = req.body
-    const user = await User.findOne({
+    const geek = await User.findOne({
         _id: req.user._id
     })
     let seasonIndex;
-    user.seasons.forEach((seas, i) => {
+    geek.seasons.forEach((seas, i) => {
         if (seas.season.toString() === seasonID) {
             seasonIndex = i
         }
     })
-    user.seasons[seasonIndex].favTeam = favTeam
-    await user.save()
+    geek.seasons[seasonIndex].favTeam = favTeam
+    await geek.save()
     res.status(200).json({
         message: {
             en: 'Favorite team saved.',
@@ -211,36 +213,36 @@ exports.updateSeasonPoints = async(req, res) => {
     const {
         seasonID
     } = req.params
-    const users = await User.find({
+    const geeks = await User.find({
         seasons: {
             $elemMatch: {
                 season: seasonID
             }
         }
     })
-    await Promise.all(users.map(async user => {
+    await Promise.all(geeks.map(async geek => {
         let seasonIndex;
-        user.seasons.forEach((season, i) => {
+        geek.seasons.forEach((season, i) => {
             if (season.season._id.toString() == seasonID) seasonIndex = i
         })
-        let seasonPoints = user.seasons[seasonIndex].initialPoints || 0;
-        let seasonCorrects = user.seasons[seasonIndex].initialNumberCorrects || 0;
-        let seasonExacts = user.seasons[seasonIndex].initialNumberExacts || 0;
-        let seasonBonusFavTeam = user.seasons[seasonIndex].initialBonusFavTeam || 0;
+        let seasonPoints = geek.seasons[seasonIndex].initialPoints || 0;
+        let seasonCorrects = geek.seasons[seasonIndex].initialNumberCorrects || 0;
+        let seasonExacts = geek.seasons[seasonIndex].initialNumberExacts || 0;
+        let seasonBonusFavTeam = geek.seasons[seasonIndex].initialBonusFavTeam || 0;
 
-        if (user.seasons[seasonIndex].matchweeks && user.seasons[seasonIndex].matchweeks.length > 0) {
-            user.seasons[seasonIndex].matchweeks.forEach(matchweek => {
+        if (geek.seasons[seasonIndex].matchweeks && geek.seasons[seasonIndex].matchweeks.length > 0) {
+            geek.seasons[seasonIndex].matchweeks.forEach(matchweek => {
                 seasonPoints += matchweek.totalPoints
                 seasonCorrects += matchweek.numberCorrects
                 seasonExacts += matchweek.numberExacts
                 seasonBonusFavTeam += matchweek.bonusFavTeam ? 1 : 0
             })
-            user.seasons[seasonIndex].totalPoints = seasonPoints
-            user.seasons[seasonIndex].numberCorrects = seasonCorrects
-            user.seasons[seasonIndex].numberExacts = seasonExacts
-            user.seasons[seasonIndex].bonusFavTeam = seasonBonusFavTeam
+            geek.seasons[seasonIndex].totalPoints = seasonPoints
+            geek.seasons[seasonIndex].numberCorrects = seasonCorrects
+            geek.seasons[seasonIndex].numberExacts = seasonExacts
+            geek.seasons[seasonIndex].bonusFavTeam = seasonBonusFavTeam
 
-            await user.save()
+            await geek.save()
         }
     }))
     res.status(200).json({

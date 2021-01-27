@@ -42,37 +42,26 @@ exports.getLeague = async(req, res) => {
         geekLeagueID
     } = req.params
     const geekLeague = await GeekLeague.findById(geekLeagueID)
-        .populate({
+        .populate([{
             path: 'geeks',
-            model: 'User'
-        })
-        .populate({
-            path: 'seasons',
-            model: 'Season'
-        })
-        .populate({
-            path: 'geeks',
-            populate: {
+            model: 'User',
+            populate: [{
                 path: 'seasons',
-                populate: {
+                populate: [{
                     path: 'matchweeks',
                     populate: {
                         path: 'pronogeeks',
                         model: 'Pronogeek'
                     }
-                }
-            }
-        })
-        .populate({
-            path: 'geeks',
-            populate: {
-                path: 'seasons',
-                populate: {
+                }, {
                     path: 'favTeam',
                     model: 'Team'
-                }
-            }
-        })
+                }]
+            }]
+        }, {
+            path: 'seasons',
+            model: 'Season'
+        }])
     res.status(200).json({
         geekLeague
     })
