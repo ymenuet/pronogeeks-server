@@ -70,3 +70,12 @@ exports.populateHomeAndAwayTeams = [{
     path: 'awayTeam',
     model: 'Team'
 }]
+
+exports.seasonPopulator = [{
+    path: 'fixtures',
+    model: 'Fixture',
+    populate: this.populateHomeAndAwayTeams
+}, {
+    path: 'rankedTeams',
+    model: 'Team'
+}]
