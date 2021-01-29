@@ -62,34 +62,26 @@ exports.createGeekSeason = async(req, res) => {
         }
     })
 
-    else {
-
-        const newSeason = {
-            season: seasonID,
-            provisionalRanking: [],
-            matchweeks: [],
-            totalPoints: 0,
-            initialPoints: 0,
-            numberCorrects: 0,
-            initialNumberCorrects: 0,
-            numberExacts: 0,
-            initialNumberExacts: 0,
-            bonusFavTeam: 0,
-            initialBonusFavTeam: 0,
-        }
-        geek.seasons.push(newSeason)
-        await geek.save()
-
-        populatedSeason = await Season.findById(seasonID).populate(seasonPopulator)
-
-        geekSeason = {
-            ...newSeason,
-            season: populatedSeason
-        }
+    const newSeason = {
+        season: seasonID,
+        provisionalRanking: [],
+        matchweeks: [],
+        totalPoints: 0,
+        initialPoints: 0,
+        numberCorrects: 0,
+        initialNumberCorrects: 0,
+        numberExacts: 0,
+        initialNumberExacts: 0,
+        bonusFavTeam: 0,
+        initialBonusFavTeam: 0,
     }
+    geek.seasons.push(newSeason)
+    await geek.save()
+
+    const season = await Season.findById(seasonID).populate(seasonPopulator)
 
     return res.status(200).json({
-        geekSeason
+        season
     })
 }
 
