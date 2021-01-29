@@ -4,7 +4,6 @@ const Season = require('../models/Season')
 
 const {
     seasonPopulator,
-    userPopulator
 } = require('../populators')
 
 exports.getAllGeeks = async(req, res) => {
@@ -49,15 +48,19 @@ exports.createGeekSeason = async(req, res) => {
     } = req.params
 
     const geek = await User.findOne({
-            _id: req.user._id
-        })
-        .populate(userPopulator)
+        _id: req.user._id
+    })
 
     let geekSeason = []
 
     if (geek.seasons.length) geekSeason = geek.seasons.filter(seas => seas.season.toString() === seasonID)
 
-    if (geekSeason.length > 0) geekSeason = geekSeason[0]
+    if (geekSeason.length > 0) return res.status(304).json({
+        message: {
+            en: `This season already exists on the user's profile. Not modified.`,
+            fr: `Cette saison existe déjà sur le profil de l'utilisateur. Aucune modification faite.`
+        }
+    })
 
     else {
 
@@ -90,7 +93,8 @@ exports.createGeekSeason = async(req, res) => {
     })
 }
 
-exports.getMatchweek = async(req, res) => {
+// Modifier ce controller pour retourner la journée créée à l'action
+exports.createGeekMatchweek = async(req, res) => {
     const {
         seasonID,
         matchweekNumber
@@ -99,6 +103,7 @@ exports.getMatchweek = async(req, res) => {
     const geek = await User.findOne({
         _id: req.user._id
     })
+
     let index;
     const season = geek.seasons.filter((seas, i) => {
         if (seas.season.toString() === seasonID) {

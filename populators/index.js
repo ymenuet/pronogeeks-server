@@ -1,3 +1,20 @@
+exports.populateHomeAndAwayTeams = [{
+    path: 'homeTeam',
+    model: 'Team'
+}, {
+    path: 'awayTeam',
+    model: 'Team'
+}]
+
+exports.seasonPopulator = [{
+    path: 'fixtures',
+    model: 'Fixture',
+    populate: this.populateHomeAndAwayTeams
+}, {
+    path: 'rankedTeams',
+    model: 'Team'
+}]
+
 exports.userPopulator = [{
     path: 'seasons',
     populate: [{
@@ -6,13 +23,7 @@ exports.userPopulator = [{
         populate: [{
             path: 'fixtures',
             model: 'Fixture',
-            populate: [{
-                path: 'awayTeam',
-                model: 'Team'
-            }, {
-                path: 'homeTeam',
-                model: 'Team'
-            }]
+            populate: this.populateHomeAndAwayTeams
         }, {
             path: 'rankedTeams',
             model: 'Team'
@@ -25,13 +36,7 @@ exports.userPopulator = [{
             populate: {
                 path: 'fixture',
                 model: 'Fixture',
-                populate: [{
-                    path: 'awayTeam',
-                    model: 'Team'
-                }, {
-                    path: 'homeTeam',
-                    model: 'Team'
-                }]
+                populate: this.populateHomeAndAwayTeams
             }
         }
     }, {
@@ -61,21 +66,4 @@ exports.userPopulator = [{
             }]
         }
     }
-}]
-
-exports.populateHomeAndAwayTeams = [{
-    path: 'homeTeam',
-    model: 'Team'
-}, {
-    path: 'awayTeam',
-    model: 'Team'
-}]
-
-exports.seasonPopulator = [{
-    path: 'fixtures',
-    model: 'Fixture',
-    populate: this.populateHomeAndAwayTeams
-}, {
-    path: 'rankedTeams',
-    model: 'Team'
 }]
