@@ -25,7 +25,7 @@ router.get('/updatePoints/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), ca
 
 router.get('/:userID', catchErrors(getGeek))
 
-router.put('/geekLeagueHistory/:userID/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
+router.put('/geekLeagueHistory/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
 
 router.put('/provisionalRanking/:seasonID', ensureLogin, catchErrors(updateProvRanking))
 

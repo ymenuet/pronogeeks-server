@@ -2,10 +2,6 @@ const User = require('../models/User')
 const Team = require('../models/Team')
 const Season = require('../models/Season')
 
-const {
-    seasonPopulator,
-} = require('../populators')
-
 exports.getAllGeeks = async(req, res) => {
     let geeks = await User.find(null, null, {
         sort: {
@@ -71,10 +67,9 @@ exports.getSeasonPlayers = async(req, res) => {
 
 exports.saveGeekLeagueHistory = async(req, res) => {
     const {
-        userID,
         geekLeagueID
     } = req.params
-    await User.findByIdAndUpdate(userID, {
+    await User.findByIdAndUpdate(req.user._id, {
         geekLeagueHistory: geekLeagueID
     })
     res.status(200).json({
