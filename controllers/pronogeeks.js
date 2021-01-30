@@ -12,6 +12,22 @@ exports.getProno = async(req, res) => {
     })
 }
 
+exports.getMatchweekPronos = async(req, res) => {
+    const {
+        geekID,
+        seasonID,
+        matchweekNumber
+    } = req.params
+    const pronogeeks = await Pronogeek.find({
+        geek: geekID,
+        season: seasonID,
+        matchweek: matchweekNumber
+    })
+    res.status(200).json({
+        pronogeeks
+    })
+}
+
 exports.newProno = async(req, res) => {
     let {
         homeProno,
@@ -54,7 +70,12 @@ exports.newProno = async(req, res) => {
             fixture: fixtureID,
             homeProno,
             awayProno,
-            winner
+            winner,
+            correct: false,
+            exact: false,
+            bonusFavTeam: false,
+            points: 0,
+            addedToProfile: false
         }).catch(err => res.status(500).json({
             message: {
                 en: 'Error while saving the pronostics. Check if the values are numbers.',
@@ -64,17 +85,29 @@ exports.newProno = async(req, res) => {
         const user = await User.findOne({
             _id: req.user._id
         })
-        let seasonIndex = null
+        let seasonIndex
         user.seasons.forEach((season, i) => {
             if (season.season.toString() === fixture.season.toString()) seasonIndex = i
         })
         if (seasonIndex >= 0) {
-            let matchweekIndex = null
+            let matchweekIndex
             user.seasons[seasonIndex].matchweeks.forEach((matchweek, i) => {
                 if (matchweek.number === matchweekNumber) matchweekIndex = i
             })
             if (matchweekIndex >= 0) {
                 user.seasons[seasonIndex].matchweeks[matchweekIndex].pronogeeks.push(pronogeek._id)
+            } else {
+                const newMatchweek = {
+                    pronogeeks: [pronogeek._id],
+                    number: matchweekNumber,
+                    points: 0,
+                    numberCorrects: 0,
+                    numberExacts: 0,
+                    bonusFavTeam: false,
+                    bonusPoints: 0,
+                    totalPoints: 0
+                }
+                user.seasons[seasonIndex].matchweeks.push(newMatchweek)
             }
         }
         user.save()

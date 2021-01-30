@@ -8,8 +8,6 @@ const {
 } = require('../middlewares/index')
 
 const {
-    createGeekSeason,
-    createGeekMatchweek,
     getSeasonPlayers,
     saveFavTeam,
     getAllGeeks,
@@ -26,10 +24,6 @@ router.get('/players/:seasonID', ensureLogin, catchErrors(getSeasonPlayers))
 router.get('/updatePoints/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(updateSeasonPoints))
 
 router.get('/:userID', catchErrors(getGeek))
-
-router.put('/season/:seasonID', ensureLogin, catchErrors(createGeekSeason))
-
-router.put('/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, catchErrors(createGeekMatchweek))
 
 router.put('/geekLeagueHistory/:userID/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
 

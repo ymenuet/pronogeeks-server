@@ -19,26 +19,7 @@ exports.userPopulator = [{
     path: 'seasons',
     populate: [{
         path: 'season',
-        model: 'Season',
-        populate: [{
-            path: 'fixtures',
-            model: 'Fixture',
-            populate: this.populateHomeAndAwayTeams
-        }, {
-            path: 'rankedTeams',
-            model: 'Team'
-        }]
-    }, {
-        path: 'matchweeks',
-        populate: {
-            path: 'pronogeeks',
-            model: 'Pronogeek',
-            populate: {
-                path: 'fixture',
-                model: 'Fixture',
-                populate: this.populateHomeAndAwayTeams
-            }
-        }
+        model: 'Season'
     }, {
         path: 'provisionalRanking',
         model: 'Team'
@@ -52,18 +33,5 @@ exports.userPopulator = [{
     populate: {
         path: 'geeks',
         model: 'User',
-        populate: {
-            path: 'seasons',
-            populate: [{
-                path: 'favTeam',
-                model: 'Team'
-            }, {
-                path: 'matchweeks',
-                populate: {
-                    path: 'pronogeeks',
-                    model: 'Pronogeek'
-                }
-            }]
-        }
     }
 }]

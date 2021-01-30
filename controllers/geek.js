@@ -42,97 +42,6 @@ exports.getGeek = async(req, res) => {
     })
 }
 
-exports.createGeekSeason = async(req, res) => {
-    const {
-        seasonID
-    } = req.params
-
-    const geek = await User.findOne({
-        _id: req.user._id
-    })
-
-    let geekSeason = []
-
-    if (geek.seasons.length) geekSeason = geek.seasons.filter(seas => seas.season.toString() === seasonID)
-
-    if (geekSeason.length > 0) return res.status(304).json({
-        message: {
-            en: `This season already exists on the user's profile. Not modified.`,
-            fr: `Cette saison existe déjà sur le profil de l'utilisateur. Aucune modification faite.`
-        }
-    })
-
-    const newSeason = {
-        season: seasonID,
-        provisionalRanking: [],
-        matchweeks: [],
-        totalPoints: 0,
-        initialPoints: 0,
-        numberCorrects: 0,
-        initialNumberCorrects: 0,
-        numberExacts: 0,
-        initialNumberExacts: 0,
-        bonusFavTeam: 0,
-        initialBonusFavTeam: 0,
-    }
-    geek.seasons.push(newSeason)
-    await geek.save()
-
-    const season = await Season.findById(seasonID).populate(seasonPopulator)
-
-    return res.status(200).json({
-        season
-    })
-}
-
-// Modifier ce controller pour retourner la journée créée à l'action
-exports.createGeekMatchweek = async(req, res) => {
-    const {
-        seasonID,
-        matchweekNumber
-    } = req.params
-
-    const geek = await User.findOne({
-        _id: req.user._id
-    })
-
-    let index;
-    const season = geek.seasons.filter((seas, i) => {
-        if (seas.season.toString() === seasonID) {
-            index = i
-            return true
-        } else return false
-    })
-    if (season.length < 1) return res.status(404).json({
-        message: {
-            en: 'Season not found on this profile.',
-            fr: 'Saison introuvable sur ce profil.'
-        }
-    })
-    else {
-        let matchweekExists = season[0].matchweeks.filter(matchweek => matchweek.number.toString() === matchweekNumber)
-        if (matchweekExists.length > 0) {
-            matchweekExists = matchweekExists[0]
-            return res.status(200).json({
-                matchweek: matchweekExists
-            })
-        } else if (matchweekExists.length < 1) {
-            const newMatchweek = {
-                pronogeeks: [],
-                number: matchweekNumber,
-                points: 0,
-                bonusPoints: 0,
-                totalPoints: 0
-            }
-            geek.seasons[index].matchweeks.push(newMatchweek)
-            geek.save()
-            return res.status(200).json({
-                matchweek: newMatchweek
-            })
-        }
-    }
-}
-
 exports.getSeasonPlayers = async(req, res) => {
     const {
         seasonID
@@ -213,19 +122,46 @@ exports.saveFavTeam = async(req, res) => {
     const geek = await User.findOne({
         _id: req.user._id
     })
-    let seasonIndex;
-    geek.seasons.forEach((seas, i) => {
-        if (seas.season.toString() === seasonID) {
-            seasonIndex = i
+
+    let geekSeason = []
+
+    if (geek.seasons.length) geekSeason = geek.seasons.filter(seas => seas.season.toString() === seasonID)
+
+    if (geekSeason.length > 0 && geekSeason[0].favTeam) return res.status(304).json({
+        message: {
+            en: `The user already have a favorite team for this season. Not modified.`,
+            fr: `L'utilisateur a déjà une équipe de coeur pour cette saison. Aucune modification faite.`
         }
     })
-    geek.seasons[seasonIndex].favTeam = teamID
+
+    const newSeason = {
+        season: seasonID,
+        favTeam: teamID,
+        provisionalRanking: [],
+        matchweeks: [],
+        totalPoints: 0,
+        initialPoints: 0,
+        numberCorrects: 0,
+        initialNumberCorrects: 0,
+        numberExacts: 0,
+        initialNumberExacts: 0,
+        bonusFavTeam: 0,
+        initialBonusFavTeam: 0,
+    }
+    geek.seasons.push(newSeason)
     await geek.save()
 
-    const userFavTeam = await Team.findById(teamID)
+    const favTeam = await Team.findById(teamID)
+    const season = await Season.findById(seasonID)
 
-    res.status(200).json({
-        userFavTeam
+    geekSeason = {
+        ...newSeason,
+        favTeam,
+        season
+    }
+
+    return res.status(200).json({
+        geekSeason
     })
 }
 
