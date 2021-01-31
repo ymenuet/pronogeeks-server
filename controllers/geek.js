@@ -21,16 +21,10 @@ exports.getGeek = async(req, res) => {
     const geek = await User.findById(req.params.userID)
         .populate({
             path: 'seasons',
-            populate: [{
-                path: 'season',
-                model: 'Season'
-            }, {
-                path: 'matchweeks',
-                populate: {
-                    path: 'pronogeeks',
-                    model: 'Pronogeek'
-                }
-            }]
+            populate: {
+                path: 'favTeam',
+                model: 'Team'
+            }
         })
     if (geek) geek.password = undefined
     res.status(200).json({
