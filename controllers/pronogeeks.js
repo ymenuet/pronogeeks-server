@@ -28,16 +28,18 @@ exports.getMatchweekPronos = async(req, res) => {
     })
 }
 
-exports.newProno = async(req, res) => {
+exports.saveProno = async(req, res) => {
+    const {
+        fixtureID
+    } = req.params
+
     let {
         homeProno,
         awayProno
     } = req.body
     homeProno = parseInt(homeProno)
     awayProno = parseInt(awayProno)
-    const {
-        fixtureID
-    } = req.params
+
     const fixture = await Fixture.findById(fixtureID)
         .populate({
             path: 'homeTeam',
@@ -52,18 +54,26 @@ exports.newProno = async(req, res) => {
         awayProno > homeProno ? fixture.awayTeam.name :
         awayProno === homeProno ? 'Draw' :
         null
-    const pronogeekExists = await Pronogeek.findOne({
+
+    let pronogeek = await Pronogeek.findOne({
         fixture: fixtureID,
         geek: req.user._id
     })
-    if (pronogeekExists) return res.status(304).json({
-        message: {
-            en: 'Pronogeek already existing for this user. Creation aborted.',
-            fr: 'Un pronogeek existe déjà pour cet utilisateur et cette rencontre. Création annulée.'
-        }
-    })
-    else {
-        const pronogeek = await Pronogeek.create({
+
+    if (pronogeek) {
+        pronogeek.homeProno = homeProno
+        pronogeek.awayProno = awayProno
+        pronogeek.winner = winner
+
+        await pronogeek.save().catch(err => res.status(500).json({
+            message: {
+                en: 'Error while saving the pronostics. Check if the values are numbers.',
+                fr: 'Échec de la sauvegarde du pronostic. Vérifier que les valeurs à enregistrer sont bien des numéros.'
+            }
+        }))
+
+    } else {
+        pronogeek = await Pronogeek.create({
             geek: req.user._id,
             season: fixture.season,
             matchweek: fixture.matchweek,
@@ -111,55 +121,9 @@ exports.newProno = async(req, res) => {
             }
         }
         user.save()
-        res.status(201).json({
-            pronogeek
-        })
     }
-}
 
-exports.saveProno = async(req, res) => {
-    let {
-        homeProno,
-        awayProno
-    } = req.body
-    homeProno = parseInt(homeProno)
-    awayProno = parseInt(awayProno)
-    const pronogeekWithTeams = await Pronogeek.findById(req.params.pronogeekID)
-        .populate({
-            path: 'fixture',
-            model: 'Fixture'
-        })
-        .populate({
-            path: 'fixture',
-            populate: {
-                path: 'homeTeam',
-                model: 'Team'
-            }
-        })
-        .populate({
-            path: 'fixture',
-            populate: {
-                path: 'awayTeam',
-                model: 'Team'
-            }
-        })
-    const winner = homeProno > awayProno ? pronogeekWithTeams.fixture.homeTeam.name :
-        awayProno > homeProno ? pronogeekWithTeams.fixture.awayTeam.name :
-        awayProno === homeProno ? 'Draw' :
-        null
-    const pronogeek = await Pronogeek.findByIdAndUpdate(req.params.pronogeekID, {
-        homeProno,
-        awayProno,
-        winner
-    }, {
-        new: true
-    }).catch(err => res.status(500).json({
-        message: {
-            en: 'Error while saving the pronostics. Check if the values are numbers.',
-            fr: 'Échec de la sauvegarde du pronostic. Vérifier que les valeurs à enregistrer sont bien des numéros.'
-        }
-    }))
-    res.status(200).json({
+    res.status(201).json({
         pronogeek
     })
 }
