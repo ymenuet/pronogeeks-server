@@ -9,12 +9,15 @@ const {
 const {
     getProno,
     getMatchweekPronos,
-    saveProno
+    saveProno,
+    saveMatchweekPronos
 } = require('../controllers/pronogeeks')
 
 router.get('/:fixtureID', ensureLogin, catchErrors(getProno))
 
 router.get('/geek/:geekID/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, catchErrors(getMatchweekPronos))
+
+router.put('/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, catchErrors(saveMatchweekPronos))
 
 router.put('/:fixtureID', ensureLogin, catchErrors(saveProno))
 
