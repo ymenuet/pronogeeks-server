@@ -1,25 +1,5 @@
 const Season = require('../models/Season')
 
-exports.getSeasons = async(req, res) => {
-    const seasons = await Season.find(null, null, {
-        sort: {
-            startDate: -1
-        }
-    })
-    res.status(200).json({
-        seasons
-    })
-}
-
-exports.getSeasonsByCountry = async(req, res) => {
-    const seasons = await Season.find({
-        countryCode: req.params.countryCode
-    })
-    res.status(200).json({
-        seasons
-    })
-}
-
 exports.getSeason = async(req, res) => {
     const season = await Season.findById(req.params.seasonID)
         .populate([{
@@ -56,34 +36,6 @@ exports.getUndergoingSeasons = async(req, res) => {
     })
     res.status(200).json({
         seasons
-    })
-}
-
-exports.getMatchweek = async(req, res) => {
-    const season = await Season.findById(req.params.seasonID)
-        .populate({
-            path: 'fixtures',
-            model: 'Fixture',
-            options: {
-                sort: {
-                    date: 1
-                }
-            },
-            populate: {
-                path: 'awayTeam',
-                model: 'Team'
-            }
-        })
-        .populate({
-            path: 'fixtures',
-            populate: {
-                path: 'homeTeam',
-                model: 'Team'
-            }
-        })
-    const fixtures = season.fixtures.filter(fixture => fixture.matchweek == req.params.matchweekNumber)
-    res.status(200).json({
-        fixtures
     })
 }
 

@@ -31,7 +31,19 @@ exports.userPopulator = [{
     path: 'geekLeagues',
     model: 'GeekLeague',
     populate: {
-        path: 'geeks',
+        path: 'creator',
         model: 'User',
     }
 }]
+
+exports.geekleaguePopulator = {
+    path: 'geeks',
+    model: 'User',
+    populate: {
+        path: 'seasons',
+        populate: {
+            path: 'favTeam',
+            model: 'Team'
+        }
+    }
+}

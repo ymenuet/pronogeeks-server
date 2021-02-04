@@ -1,6 +1,9 @@
 const GeekLeague = require('../models/GeekLeague')
 const Season = require('../models/Season')
 const User = require('../models/User')
+const {
+    geekleaguePopulator
+} = require('../populators')
 
 exports.newLeagueProcess = async(req, res) => {
     const {
@@ -17,23 +20,29 @@ exports.newLeagueProcess = async(req, res) => {
     }, {
         _id: 1
     })
-    const geekLeague = await GeekLeague.create({
+    const geekleagueCreated = await GeekLeague.create({
         name,
         creator,
         seasons,
         geeks: [creator, ...geeks]
     })
+    const leagueID = geekleagueCreated._id
+
     const users = await User.find({
         _id: {
             $in: [creator, ...geeks]
         }
     })
-    users.forEach(user => {
-        user.geekLeagues.push(geekLeague._id)
-        user.save()
-    })
+
+    await Promise.all(users.map(async user => {
+        user.geekLeagues.push(leagueID)
+        await user.save()
+    }))
+
+    const geekleague = await GeekLeague.findById(leagueID).populate(geekleaguePopulator)
+
     res.status(201).json({
-        geekLeague
+        geekleague
     })
 }
 
@@ -42,17 +51,7 @@ exports.getLeague = async(req, res) => {
         geekLeagueID
     } = req.params
     const geekleague = await GeekLeague.findById(geekLeagueID)
-        .populate({
-            path: 'geeks',
-            model: 'User',
-            populate: {
-                path: 'seasons',
-                populate: {
-                    path: 'favTeam',
-                    model: 'Team'
-                }
-            }
-        })
+        .populate(geekleaguePopulator)
     res.status(200).json({
         geekleague
     })

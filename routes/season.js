@@ -6,9 +6,6 @@ const {
     closeRankingsSeason,
     getSeason,
     getUndergoingSeasons,
-    getMatchweek,
-    getSeasons,
-    getSeasonsByCountry,
     deleteSeason
 } = require('../controllers/season')
 
@@ -18,15 +15,9 @@ const {
     catchErrors
 } = require('../middlewares/index')
 
-router.get('/', catchErrors(getSeasons))
-
 router.get('/current', catchErrors(getUndergoingSeasons))
 
-router.get('/country/:countryCode', catchErrors(getSeasonsByCountry))
-
 router.get('/:seasonID', catchErrors(getSeason))
-
-router.get('/:seasonID/:matchweekNumber', catchErrors(getMatchweek))
 
 router.post('/', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(createSeason))
 
