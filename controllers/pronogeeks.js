@@ -1,16 +1,7 @@
 const Pronogeek = require('../models/Pronogeek')
 const Fixture = require('../models/Fixture')
 const User = require('../models/User')
-
-exports.getProno = async(req, res) => {
-    const pronogeek = await Pronogeek.findOne({
-        fixture: req.params.fixtureID,
-        geek: req.user._id
-    })
-    res.status(200).json({
-        pronogeek
-    })
-}
+const GeekLeague = require('../models/GeekLeague')
 
 exports.getMatchweekPronos = async(req, res) => {
     const {
@@ -23,6 +14,32 @@ exports.getMatchweekPronos = async(req, res) => {
         season: seasonID,
         matchweek: matchweekNumber
     })
+    res.status(200).json({
+        pronogeeks
+    })
+}
+
+exports.getGeeksFixturePronos = async(req, res) => {
+    const {
+        geekleagueID,
+        fixtureID,
+    } = req.params
+
+    const geekleague = await GeekLeague.findById(geekleagueID)
+
+    const geekIDs = geekleague.geeks
+
+    const pronogeeks = await Pronogeek.find({
+            fixture: fixtureID,
+            geek: {
+                $in: geekIDs
+            }
+        })
+        .populate({
+            path: 'geek',
+            model: 'User'
+        })
+
     res.status(200).json({
         pronogeeks
     })
