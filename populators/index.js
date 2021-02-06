@@ -36,7 +36,7 @@ exports.userPopulator = [{
     }
 }]
 
-exports.geekleaguePopulator = {
+exports.geekleaguePopulator = [{
     path: 'geeks',
     model: 'User',
     populate: {
@@ -46,4 +46,7 @@ exports.geekleaguePopulator = {
             model: 'Team'
         }
     }
-}
+}, {
+    path: 'creator',
+    model: 'User'
+}]

@@ -58,27 +58,14 @@ exports.getLeague = async(req, res) => {
 }
 
 exports.getUserLeagues = async(req, res) => {
-    const user = await User.findById(req.user._id)
-        .populate({
-            path: 'geekLeagues',
-            model: 'GeekLeague'
-        })
-        .populate({
-            path: 'geekLeagues',
-            populate: {
-                path: 'geeks',
-                model: 'User'
+    const userGeekleagues = await GeekLeague.find({
+            geeks: {
+                $in: req.user._id
             }
         })
-        .populate({
-            path: 'geekLeagues',
-            populate: {
-                path: 'creator',
-                model: 'User'
-            }
-        })
+        .populate(geekleaguePopulator)
     res.status(200).json({
-        geekLeagues: user.geekLeagues
+        userGeekleagues
     })
 }
 
