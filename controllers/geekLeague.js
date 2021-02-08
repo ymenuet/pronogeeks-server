@@ -87,9 +87,8 @@ exports.editLeague = async(req, res) => {
     } = req.body
 
     const geekleague = await GeekLeague.findOne({
-            _id: geekLeagueID
-        })
-        .populate((geekleaguePopulator))
+        _id: geekLeagueID
+    })
 
     if (!geekleague) return res.status(404).json({
         message: {
@@ -98,7 +97,7 @@ exports.editLeague = async(req, res) => {
         }
     })
 
-    if (geekleague.creator._id.toString() !== req.user._id.toString()) return res.status(304).json({
+    if (geekleague.creator.toString() !== req.user._id.toString()) return res.status(304).json({
         message: {
             en: 'You are not authorized to modify that item.',
             fr: `Tu n'es pas autorisé à modifier cet élément.`
@@ -108,11 +107,13 @@ exports.editLeague = async(req, res) => {
     if (name) geekleague.name = name
 
     if (geeks && geeks.length) {
-        geekleague.geeks = geeks ? [...geekleague.geeks, ...geeks] : geekleague.geeks
+        const geeksWithoutDuplicata = geeks.filter(geek => !geekleague.geeks.includes(geek))
+
+        geekleague.geeks = [...geekleague.geeks, ...geeksWithoutDuplicata]
 
         const users = await User.find({
             _id: {
-                $in: geeks
+                $in: geeksWithoutDuplicata
             }
         })
         await Promise.all(users.map(async user => {
@@ -123,8 +124,10 @@ exports.editLeague = async(req, res) => {
 
     await geekleague.save()
 
+    const editedGeekleague = await GeekLeague.findById(geekLeagueID).populate(geekleaguePopulator)
+
     res.status(200).json({
-        geekleague
+        geekleague: editedGeekleague
     })
 }
 
