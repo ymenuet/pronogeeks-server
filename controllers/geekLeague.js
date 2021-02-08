@@ -52,6 +52,14 @@ exports.getLeague = async(req, res) => {
     } = req.params
     const geekleague = await GeekLeague.findById(geekLeagueID)
         .populate(geekleaguePopulator)
+
+    if (!geekleague) return res.status(404).json({
+        message: {
+            en: `This league doesn't exist (anymore).`,
+            fr: `Cette ligue n'existe pas ou plus.`
+        }
+    })
+
     res.status(200).json({
         geekleague
     })
@@ -77,34 +85,46 @@ exports.editLeague = async(req, res) => {
         name,
         geeks
     } = req.body
-    const editedGeekLeague = await GeekLeague.findOne({
-        _id: geekLeagueID
+
+    const geekleague = await GeekLeague.findOne({
+            _id: geekLeagueID
+        })
+        .populate((geekleaguePopulator))
+
+    if (!geekleague) return res.status(404).json({
+        message: {
+            en: `This league doesn't exist (anymore).`,
+            fr: `Cette ligue n'existe pas ou plus.`
+        }
     })
-    if (editedGeekLeague.creator.toString() !== req.user._id.toString()) return res.status(304).json({
+
+    if (geekleague.creator._id.toString() !== req.user._id.toString()) return res.status(304).json({
         message: {
             en: 'You are not authorized to modify that item.',
             fr: `Tu n'es pas autorisé à modifier cet élément.`
         }
     })
-    editedGeekLeague.name = name ? name : editedGeekLeague.name
-    editedGeekLeague.geeks = geeks ? [...editedGeekLeague.geeks, ...geeks] : editedGeekLeague.geeks
-    const users = await User.find({
-        _id: {
-            $in: geeks
-        }
-    })
-    await editedGeekLeague.save()
-    users.forEach(user => {
-        user.geekLeagues.push(geekLeagueID)
-        user.save()
-    })
-    const geekLeague = await GeekLeague.findById(geekLeagueID)
-        .populate({
-            path: 'geeks',
-            model: 'User'
+
+    if (name) geekleague.name = name
+
+    if (geeks && geeks.length) {
+        geekleague.geeks = geeks ? [...geekleague.geeks, ...geeks] : geekleague.geeks
+
+        const users = await User.find({
+            _id: {
+                $in: geeks
+            }
         })
+        await Promise.all(users.map(async user => {
+            user.geekLeagues.push(geekLeagueID)
+            await user.save()
+        }))
+    }
+
+    await geekleague.save()
+
     res.status(200).json({
-        geekLeague
+        geekleague
     })
 }
 
@@ -112,14 +132,38 @@ exports.deleteLeague = async(req, res) => {
     const {
         geekLeagueID
     } = req.params
+
     const geekLeague = await GeekLeague.findById(geekLeagueID)
+
+    if (!geekLeague) return res.status(404).json({
+        message: {
+            en: `This league doesn't exist (anymore).`,
+            fr: `Cette ligue n'existe pas ou plus.`
+        }
+    })
+
     if (geekLeague.creator.toString() !== req.user._id.toString()) return res.status(304).json({
         message: {
             en: 'You are not authorized to delete that item.',
             fr: `Tu n'es pas autorisé à supprimer cet élément.`
         }
     })
+
+    const geeks = geekLeague.geeks
+
+    await Promise.all(geeks.map(async geekID => {
+        const geek = await User.findOne({
+            _id: geekID
+        })
+
+        if (!geek) return
+
+        geek.geekLeagues = geek.geekLeagues.filter(league => league.toString() !== geekLeagueID)
+        await geek.save()
+    }))
+
     await GeekLeague.findByIdAndDelete(geekLeagueID)
+
     res.status(200).json({
         message: {
             en: 'Geek league deleted.',
@@ -132,17 +176,27 @@ exports.outLeague = async(req, res) => {
     const {
         geekLeagueID
     } = req.params
+
     const userID = req.user._id
+
     const geekLeague = await GeekLeague.findOne({
         _id: geekLeagueID
     })
+    if (!geekLeague) return res.status(404).json({
+        message: {
+            en: `This league doesn't exist (anymore).`,
+            fr: `Cette ligue n'existe pas ou plus.`
+        }
+    })
     geekLeague.geeks = geekLeague.geeks.filter(geek => geek.toString() !== userID.toString())
     await geekLeague.save()
+
     const user = await User.findOne({
         _id: userID
     })
     user.geekLeagues = user.geekLeagues.filter(league => league.toString() !== geekLeagueID.toString())
     await user.save()
+
     res.status(200).json({
         message: {
             en: 'Geek removed from geek league.',
