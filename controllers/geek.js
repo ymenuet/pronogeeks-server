@@ -1,6 +1,9 @@
 const User = require('../models/User')
 const Team = require('../models/Team')
 const Season = require('../models/Season')
+const {
+    geekPopulator
+} = require('../populators')
 
 exports.getAllGeeks = async(req, res) => {
     let geeks = await User.find(null, null, {
@@ -19,13 +22,7 @@ exports.getAllGeeks = async(req, res) => {
 
 exports.getGeek = async(req, res) => {
     const geek = await User.findById(req.params.userID)
-        .populate({
-            path: 'seasons',
-            populate: {
-                path: 'favTeam',
-                model: 'Team'
-            }
-        })
+        .populate(geekPopulator)
     if (geek) geek.password = undefined
     res.status(200).json({
         geek
@@ -43,13 +40,7 @@ exports.getSeasonPlayers = async(req, res) => {
                 }
             }
         })
-        .populate({
-            path: 'seasons',
-            populate: {
-                path: 'favTeam',
-                model: 'Team'
-            }
-        })
+        .populate(geekPopulator)
     geeks = geeks.map(geek => ({
         ...geek._doc,
         password: undefined

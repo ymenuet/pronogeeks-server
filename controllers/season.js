@@ -1,26 +1,12 @@
 const Season = require('../models/Season')
+const {
+    seasonPopulator
+} = require('../populators')
 
 exports.getSeason = async(req, res) => {
     const season = await Season.findById(req.params.seasonID)
-        .populate([{
-            path: 'fixtures',
-            model: 'Fixture',
-            options: {
-                sort: {
-                    date: 1
-                }
-            },
-            populate: [{
-                path: 'awayTeam',
-                model: 'Team'
-            }, {
-                path: 'homeTeam',
-                model: 'Team'
-            }]
-        }, {
-            path: 'rankedTeams',
-            model: 'Team'
-        }])
+        .populate(seasonPopulator)
+
     res.status(200).json({
         season
     })

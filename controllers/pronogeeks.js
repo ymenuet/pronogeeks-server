@@ -2,6 +2,9 @@ const Pronogeek = require('../models/Pronogeek')
 const Fixture = require('../models/Fixture')
 const User = require('../models/User')
 const GeekLeague = require('../models/GeekLeague')
+const {
+    populateHomeAndAwayTeams
+} = require('../populators')
 
 exports.getMatchweekPronos = async(req, res) => {
     const {
@@ -19,7 +22,7 @@ exports.getMatchweekPronos = async(req, res) => {
     })
 }
 
-exports.getGeeksFixturePronos = async(req, res) => {
+exports.getGeekleagueFixturePronos = async(req, res) => {
     const {
         geekleagueID,
         fixtureID,
@@ -190,14 +193,7 @@ async function saveOneProno({
     awayProno = parseInt(awayProno)
 
     const fixture = await Fixture.findById(fixtureID)
-        .populate({
-            path: 'homeTeam',
-            model: 'Team'
-        })
-        .populate({
-            path: 'awayTeam',
-            model: 'Team'
-        })
+        .populate(populateHomeAndAwayTeams)
 
     const winner = homeProno > awayProno ? fixture.homeTeam.name :
         awayProno > homeProno ? fixture.awayTeam.name :

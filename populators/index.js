@@ -1,20 +1,3 @@
-exports.populateHomeAndAwayTeams = [{
-    path: 'homeTeam',
-    model: 'Team'
-}, {
-    path: 'awayTeam',
-    model: 'Team'
-}]
-
-exports.seasonPopulator = [{
-    path: 'fixtures',
-    model: 'Fixture',
-    populate: this.populateHomeAndAwayTeams
-}, {
-    path: 'rankedTeams',
-    model: 'Team'
-}]
-
 exports.userPopulator = [{
     path: 'seasons',
     populate: [{
@@ -36,16 +19,40 @@ exports.userPopulator = [{
     }
 }]
 
+exports.populateHomeAndAwayTeams = [{
+    path: 'homeTeam',
+    model: 'Team'
+}, {
+    path: 'awayTeam',
+    model: 'Team'
+}]
+
+exports.geekPopulator = {
+    path: 'seasons',
+    populate: {
+        path: 'favTeam',
+        model: 'Team'
+    }
+}
+
+exports.seasonPopulator = [{
+    path: 'fixtures',
+    model: 'Fixture',
+    options: {
+        sort: {
+            date: 1
+        }
+    },
+    populate: this.populateHomeAndAwayTeams
+}, {
+    path: 'rankedTeams',
+    model: 'Team'
+}]
+
 exports.geekleaguePopulator = [{
     path: 'geeks',
     model: 'User',
-    populate: {
-        path: 'seasons',
-        populate: {
-            path: 'favTeam',
-            model: 'Team'
-        }
-    }
+    populate: this.geekPopulator
 }, {
     path: 'creator',
     model: 'User'
@@ -58,11 +65,5 @@ exports.pronogeekPopulator = [{
 }, {
     path: 'geek',
     model: 'User',
-    populate: {
-        path: 'seasons',
-        populate: {
-            path: 'favTeam',
-            model: 'Team'
-        }
-    }
+    populate: this.geekPopulator
 }]
