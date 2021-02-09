@@ -50,3 +50,19 @@ exports.geekleaguePopulator = [{
     path: 'creator',
     model: 'User'
 }]
+
+exports.pronogeekPopulator = [{
+    path: 'fixture',
+    model: 'Fixture',
+    populate: this.populateHomeAndAwayTeams
+}, {
+    path: 'geek',
+    model: 'User',
+    populate: {
+        path: 'seasons',
+        populate: {
+            path: 'favTeam',
+            model: 'Team'
+        }
+    }
+}]
