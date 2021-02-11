@@ -196,7 +196,6 @@ exports.calculateOdds = (odd, fixture) => {
     fixture.oddsWinHome = extractOdd('Home')
     fixture.oddsDraw = extractOdd('Draw')
     fixture.oddsWinAway = extractOdd('Away')
-    fixture.lastOddsUpdate = Date.now()
 
     return fixture
 }

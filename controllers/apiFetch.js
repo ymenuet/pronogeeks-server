@@ -225,8 +225,10 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
 
         if (odd) {
             fixture = calculateOdds(odd, fixture)
-            await fixture.save()
         }
+
+        fixture.lastOddsUpdate = Date.now()
+        await fixture.save()
 
         return fixture
     }))
