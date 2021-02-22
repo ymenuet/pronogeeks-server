@@ -40,13 +40,13 @@ exports.determineWinnerFixture = (fixture, fixtureOdds) => {
     ) {
         if (goalsHomeTeam > goalsAwayTeam) {
             winner = fixture.homeTeam.team_name;
-            points = fixtureOdds.oddsWinHome
+            points = fixtureOdds.oddsWinHome || 0
         } else if (goalsHomeTeam < goalsAwayTeam) {
             winner = fixture.awayTeam.team_name
-            points = fixtureOdds.oddsWinAway
+            points = fixtureOdds.oddsWinAway || 0
         } else {
             winner = 'Draw'
-            points = fixtureOdds.oddsDraw
+            points = fixtureOdds.oddsDraw || 0
         }
     }
 
