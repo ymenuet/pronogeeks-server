@@ -1,3 +1,7 @@
+const {
+    profileFilter
+} = require("../helpers/constants")
+
 exports.userPopulator = [{
     path: 'seasons',
     populate: [{
@@ -52,10 +56,12 @@ exports.seasonPopulator = [{
 exports.geekleaguePopulator = [{
     path: 'geeks',
     model: 'User',
-    populate: this.geekPopulator
+    populate: this.geekPopulator,
+    select: profileFilter,
 }, {
     path: 'creator',
-    model: 'User'
+    model: 'User',
+    select: profileFilter,
 }]
 
 exports.pronogeekPopulator = [{
@@ -65,5 +71,6 @@ exports.pronogeekPopulator = [{
 }, {
     path: 'geek',
     model: 'User',
-    populate: this.geekPopulator
+    populate: this.geekPopulator,
+    select: profileFilter,
 }]

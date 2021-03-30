@@ -1,6 +1,9 @@
 const passport = require('passport');
 const User = require('../models/User');
 const {
+    profileFilter
+} = require('../helpers/constants');
+const {
     userPopulator
 } = require('../populators')
 
@@ -13,8 +16,8 @@ passport.deserializeUser((userIdFromSession, cb) => {
             _id: userIdFromSession
         })
         .populate(userPopulator)
+        .select(profileFilter)
         .then(userDocument => {
-            if (userDocument) userDocument.password = undefined
             cb(null, userDocument);
         })
         .catch(err => {

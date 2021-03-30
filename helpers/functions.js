@@ -3,7 +3,7 @@ const Season = require('../models/Season')
 
 const {
     getSeasonRankingFromAPI
-} = require('../helpers/apiFootball')
+} = require('./apiFootball')
 
 exports.generateRandomToken = tokenLength => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

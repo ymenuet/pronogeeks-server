@@ -4,17 +4,17 @@ const Season = require('../models/Season')
 const {
     geekPopulator
 } = require('../populators')
+const {
+    profileFilter
+} = require('../helpers/constants')
 
 exports.getAllGeeks = async(req, res) => {
-    let geeks = await User.find(null, null, {
-        sort: {
-            username: 1
-        }
-    })
-    geeks = geeks.map(geek => ({
-        ...geek._doc,
-        password: undefined
-    }))
+    const geeks = await User.find(null, null, {
+            sort: {
+                username: 1
+            }
+        })
+        .select(profileFilter)
     res.status(200).json({
         geeks
     })
@@ -23,7 +23,7 @@ exports.getAllGeeks = async(req, res) => {
 exports.getGeek = async(req, res) => {
     const geek = await User.findById(req.params.userID)
         .populate(geekPopulator)
-    if (geek) geek.password = undefined
+        .select(profileFilter)
     res.status(200).json({
         geek
     })
@@ -41,10 +41,8 @@ exports.getSeasonPlayers = async(req, res) => {
             }
         })
         .populate(geekPopulator)
-    geeks = geeks.map(geek => ({
-        ...geek._doc,
-        password: undefined
-    }))
+        .select(profileFilter)
+
     res.status(200).json({
         geeks
     })

@@ -11,13 +11,17 @@ const {
     determineWinnerFixture,
     calculateOdds,
     fetchAndSaveSeasonRanking
-} = require('../helpers')
+} = require('../helpers/functions')
 
 const {
     getTeamsBySeasonFromAPI,
     getFixturesByMatchweekFromAPI,
     getWinnerOddByFixtureFromAPI,
 } = require('../helpers/apiFootball')
+
+const {
+    profileFilter
+} = require('../helpers/constants')
 
 const {
     populateHomeAndAwayTeams,
@@ -183,8 +187,9 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         updateRankingTimeoutId = setTimeout(() => fetchAndSaveSeasonRanking(seasonID), MILLISECONDS_IN_25_MINUTES)
     }
 
-    const user = await User.findById(req.user._id).populate(userPopulator)
-    user.password = undefined
+    const user = await User.findById(req.user._id)
+        .populate(userPopulator)
+        .select(profileFilter)
 
     const pronogeeks = await Pronogeek.find({
         geek: req.user._id,

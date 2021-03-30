@@ -5,6 +5,9 @@ const GeekLeague = require('../models/GeekLeague')
 const {
     populateHomeAndAwayTeams
 } = require('../populators')
+const {
+    profileFilter
+} = require('../helpers/constants')
 
 exports.getMatchweekPronos = async(req, res) => {
     const {
@@ -40,7 +43,8 @@ exports.getGeekleagueFixturePronos = async(req, res) => {
         })
         .populate({
             path: 'geek',
-            model: 'User'
+            model: 'User',
+            select: profileFilter
         })
 
     res.status(200).json({

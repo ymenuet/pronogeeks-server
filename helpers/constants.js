@@ -1,0 +1,1 @@
+exports.profileFilter = ['-password', '-email', '-confirmToken', '-renewToken', '-googleID', '-facebookID']

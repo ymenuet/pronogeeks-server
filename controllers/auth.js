@@ -16,7 +16,11 @@ const bcryptSalt = 12;
 
 const {
     generateRandomToken
-} = require('../helpers');
+} = require('../helpers/functions');
+
+const {
+    profileFilter
+} = require('../helpers/constants');
 
 exports.signupProcess = async(req, res, next) => {
     const {
@@ -114,7 +118,6 @@ exports.loginProcess = async(req, res, next) => {
                     fr: 'La sauvegarde de la session a échoué.'
                 }
             })
-            user.password = undefined
             res.status(200).json(user)
         })
     })(req, res, next)
@@ -161,6 +164,7 @@ exports.editProfileProcess = async(req, res) => {
             new: true
         })
         .populate(userPopulator)
+        .select(profileFilter)
         .catch(err => {
             res.status(500).json({
                 message: {
@@ -169,7 +173,6 @@ exports.editProfileProcess = async(req, res) => {
                 }
             });
         })
-    user.password = undefined
     res.status(200).json({
         user
     })
@@ -185,6 +188,7 @@ exports.editPhoto = async(req, res) => {
             new: true
         })
         .populate(userPopulator)
+        .select(profileFilter)
         .catch(err => {
             res.status(500).json({
                 message: {
@@ -193,7 +197,6 @@ exports.editPhoto = async(req, res) => {
                 }
             });
         })
-    user.password = undefined
     res.status(200).json({
         user
     })
