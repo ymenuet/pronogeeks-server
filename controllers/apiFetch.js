@@ -20,7 +20,7 @@ const {
 } = require('../helpers/apiFootball')
 
 const {
-    profileFilter
+    profileFilter,
 } = require('../helpers/constants')
 
 const {
@@ -94,7 +94,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
 
     let rankingToUpdate = false
 
-    const usersToUpdate = []
+    const usersToUpdate = {}
 
 
     const fixturesAPI = await getFixturesByMatchweekFromAPI(leagueID, matchweekNumber)
@@ -130,53 +130,52 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
             points
         } = determineWinnerFixture(fixture, fixtureFromDB)
 
-        if (!matchFinished(fixtureFromDB.statusShort)) {
+        fixtureFromDB = await Fixture.findOneAndUpdate({
+                apiFixtureID: fixture.fixture_id,
+                season: seasonID
+            }, {
+                matchweek: matchweekNumber,
+                date: fixture.event_date,
+                homeTeam: homeTeamId,
+                awayTeam: awayTeamId,
+                goalsHomeTeam,
+                goalsAwayTeam,
+                winner,
+                status: fixture.status,
+                statusShort: fixture.statusShort,
+                timeElapsed,
+                lastScoreUpdate: Date.now()
+            }, {
+                new: true
+            })
+            .populate(populateHomeAndAwayTeams)
 
-            fixtureFromDB = await Fixture.findOneAndUpdate({
-                    apiFixtureID: fixture.fixture_id,
-                    season: seasonID
-                }, {
-                    matchweek: matchweekNumber,
-                    date: fixture.event_date,
-                    homeTeam: homeTeamId,
-                    awayTeam: awayTeamId,
-                    goalsHomeTeam,
-                    goalsAwayTeam,
-                    winner,
-                    status: fixture.status,
-                    statusShort: fixture.statusShort,
-                    timeElapsed,
-                    lastScoreUpdate: Date.now()
-                }, {
-                    new: true
+        if (matchFinished(fixtureFromDB.statusShort)) {
+
+            const pronogeeks = await Pronogeek.find({
+                    fixture: fixtureFromDB._id
                 })
-                .populate(populateHomeAndAwayTeams)
+                .populate(pronogeekPopulator)
 
-            if (matchFinished(fixtureFromDB.statusShort)) {
+            await Promise.all(pronogeeks.map(async pronogeek => {
+                if (!pronogeek.addedToProfile) {
 
-                const pronogeeks = await Pronogeek.find({
-                        fixture: fixtureFromDB._id
-                    })
-                    .populate(pronogeekPopulator)
+                    if (pronogeek.winner === winner && pronogeek.geek) {
 
-                await Promise.all(pronogeeks.map(async pronogeek => {
-                    if (!pronogeek.addedToProfile) {
-
-                        if (pronogeek.winner === winner && pronogeek.geek) {
-
-                            const geekID = pronogeek.geek._id.toString()
-                            if (!usersToUpdate.includes(geekID)) usersToUpdate.push(geekID)
-
-                            pronogeek = calculateCorrectPronogeekPoints(pronogeek, fixtureFromDB, points)
-                        }
-
-                        pronogeek.addedToProfile = true
-                        await pronogeek.save()
+                        pronogeek = calculateCorrectPronogeekPoints(pronogeek, fixtureFromDB, points)
                     }
-                    return pronogeek
-                }))
-            }
+
+                    await pronogeek.save()
+
+                    const geekID = pronogeek.geek._id.toString()
+
+                    if (usersToUpdate[geekID]) usersToUpdate[geekID].push(pronogeek._id)
+                    else usersToUpdate[geekID] = [pronogeek._id]
+                }
+                return pronogeek
+            }))
         }
+
         return fixtureFromDB
     }))
 
@@ -245,7 +244,7 @@ exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
 
 
 async function saveUserProfilesWithUpdatedPoints(usersToUpdate, seasonID, matchweekNumber) {
-    await Promise.all(usersToUpdate.map(async userID => {
+    await Promise.all(Object.keys(usersToUpdate).map(async userID => {
 
         let user = await User.findOne({
                 _id: userID
@@ -264,6 +263,12 @@ async function saveUserProfilesWithUpdatedPoints(usersToUpdate, seasonID, matchw
         if (user) {
             user = updateUserPoints(user, seasonID, matchweekNumber)
             await user.save()
+
+            await Promise.all(usersToUpdate[userID].map(async pronogeekID => {
+                await Pronogeek.findByIdAndUpdate(pronogeekID, {
+                    addedToProfile: true
+                })
+            }))
         }
 
         return user
