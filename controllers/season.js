@@ -12,6 +12,17 @@ exports.getSeason = async(req, res) => {
     })
 }
 
+exports.closeSeason = async(req, res) => {
+    const season = await Season.findByIdAndUpdate(req.params.seasonID, {
+        status: "ended"
+    }, {
+        new: true
+    })
+    res.status(200).json({
+        season
+    })
+}
+
 exports.getUndergoingSeasons = async(req, res) => {
     const seasons = await Season.find({
         status: 'underway'
@@ -20,6 +31,7 @@ exports.getUndergoingSeasons = async(req, res) => {
             startDate: -1
         }
     })
+    console.log(seasons)
     res.status(200).json({
         seasons
     })

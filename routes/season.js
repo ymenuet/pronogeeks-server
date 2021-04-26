@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
     createSeason,
+    closeSeason,
     closeRankingsSeason,
     getSeason,
     getUndergoingSeasons,
@@ -16,6 +17,8 @@ const {
 } = require('../middlewares/index')
 
 router.get('/current', catchErrors(getUndergoingSeasons))
+
+router.get('/closeSeason/:seasonID', checkRole(['GEEK ADMIN']), catchErrors(closeSeason))
 
 router.get('/:seasonID', catchErrors(getSeason))
 
