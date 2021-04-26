@@ -3,11 +3,16 @@ const {
     model
 } = require('mongoose')
 
+const {
+    LIST_OF_ALL_SEASON_STATUSES,
+    LIST_OF_ALL_SEASON_TYPES
+} = require('./enums/season')
+
 const SeasonSchema = new Schema({
     leagueName: String,
     type: {
         type: String,
-        enum: ['League'],
+        enum: LIST_OF_ALL_SEASON_TYPES,
         default: 'League'
     },
     apiLeagueID: String,
@@ -28,7 +33,7 @@ const SeasonSchema = new Schema({
     }],
     status: {
         type: String,
-        enum: ['upcoming', 'underway', 'ended'],
+        enum: LIST_OF_ALL_SEASON_STATUSES,
         default: 'upcoming'
     },
     rankedTeams: [{
