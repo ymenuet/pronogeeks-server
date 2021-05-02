@@ -2,10 +2,10 @@ const passport = require('passport');
 const User = require('../models/User');
 const {
     profileFilter
-} = require('../helpers/constants');
+} = require('../utils/constants');
 const {
     userPopulator
-} = require('../populators')
+} = require('../utils/populators')
 
 passport.serializeUser((loggedInUser, cb) => {
     cb(null, loggedInUser._id);

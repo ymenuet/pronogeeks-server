@@ -5,13 +5,13 @@ const {
 } = require('../models/enums/season')
 const {
     provRankingBonusPoints
-} = require('../helpers/constants')
+} = require('../utils/constants')
 const {
     fetchAndSaveSeasonRanking
-} = require('../helpers/functions')
+} = require('../utils/helpers')
 const {
     seasonPopulator
-} = require('../populators')
+} = require('../utils/populators')
 
 exports.getSeason = async(req, res) => {
     const season = await Season.findById(req.params.seasonID)

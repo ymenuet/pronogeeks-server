@@ -1,9 +1,9 @@
-const Team = require('../models/Team')
-const Season = require('../models/Season')
+const Team = require('../../models/Team')
+const Season = require('../../models/Season')
 
 const {
     getSeasonRankingFromAPI
-} = require('./apiFootball')
+} = require('../fetchers/apiFootball')
 
 exports.generateRandomToken = tokenLength => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

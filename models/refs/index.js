@@ -1,0 +1,6 @@
+exports.FIXTURE_REF = 'Fixture'
+exports.GEEKLEAGUE_REF = 'GeekLeague'
+exports.PRONOGEEK_REF = 'Pronogeek'
+exports.SEASON_REF = 'Season'
+exports.TEAM_REF = 'Team'
+exports.USER_REF = 'User'

@@ -3,10 +3,25 @@ const {
     model
 } = require('mongoose')
 
+const {
+    MILLISECONDS_IN_2_DAYS
+} = require('../utils/constants')
+
+const {
+    SEASON_REF,
+    TEAM_REF,
+    FIXTURE_REF
+} = require('./refs')
+
+const {
+    longStatuses,
+    shortStatuses
+} = require('./enums/fixture')
+
 const FixtureSchema = new Schema({
     season: {
         type: Schema.Types.ObjectId,
-        ref: 'Season'
+        ref: SEASON_REF
     },
     matchweek: {
         type: Number,
@@ -20,11 +35,11 @@ const FixtureSchema = new Schema({
     },
     homeTeam: {
         type: Schema.Types.ObjectId,
-        ref: 'Team'
+        ref: TEAM_REF
     },
     awayTeam: {
         type: Schema.Types.ObjectId,
-        ref: 'Team'
+        ref: TEAM_REF
     },
     goalsHomeTeam: {
         type: Number,
@@ -40,11 +55,11 @@ const FixtureSchema = new Schema({
     },
     status: {
         type: String,
-        default: 'Time To Be Defined'
+        default: longStatuses.TBD
     },
     statusShort: {
         type: String,
-        default: 'TBD'
+        default: shortStatuses.TBD
     },
     oddsWinHome: {
         type: Number,
@@ -60,14 +75,14 @@ const FixtureSchema = new Schema({
     },
     lastScoreUpdate: {
         type: Date,
-        default: Date.now() - 1000 * 60 * 60 * 24 * 2
+        default: Date.now() - MILLISECONDS_IN_2_DAYS
     },
     lastOddsUpdate: {
         type: Date,
-        default: Date.now() - 1000 * 60 * 60 * 24 * 2
+        default: Date.now() - MILLISECONDS_IN_2_DAYS
     }
 }, {
     timestamps: true
 })
 
-module.exports = model('Fixture', FixtureSchema)
+module.exports = model(FIXTURE_REF, FixtureSchema)

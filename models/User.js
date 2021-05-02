@@ -3,6 +3,19 @@ const {
     model
 } = require('mongoose');
 
+const {
+    USER_REF,
+    GEEKLEAGUE_REF,
+    TEAM_REF,
+    SEASON_REF,
+    PRONOGEEK_REF
+} = require('./refs')
+
+const {
+    userRoles,
+    LIST_OF_ALL_USER_ROLES
+} = require('./enums/user')
+
 const UserSchema = new Schema({
     email: {
         type: String,
@@ -18,8 +31,8 @@ const UserSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['GEEK ADMIN', 'SUPER GEEK', 'GEEK'],
-        default: 'GEEK'
+        enum: LIST_OF_ALL_USER_ROLES,
+        default: userRoles.GEEK
     },
     photo: {
         type: String,
@@ -35,20 +48,20 @@ const UserSchema = new Schema({
     },
     geekLeagues: [{
         type: Schema.Types.ObjectId,
-        ref: 'GeekLeague'
+        ref: GEEKLEAGUE_REF
     }],
     geekLeagueHistory: {
         type: Schema.Types.ObjectId,
-        ref: 'GeekLeague'
+        ref: GEEKLEAGUE_REF
     },
     friends: [{
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: USER_REF
     }],
     seasons: [{
         season: {
             type: Schema.Types.ObjectId,
-            ref: 'Season'
+            ref: SEASON_REF
         },
         totalPoints: {
             type: Number,
@@ -84,16 +97,16 @@ const UserSchema = new Schema({
         },
         provisionalRanking: [{
             type: Schema.Types.ObjectId,
-            ref: 'Team'
+            ref: TEAM_REF
         }],
         favTeam: {
             type: Schema.Types.ObjectId,
-            ref: 'Team'
+            ref: TEAM_REF
         },
         matchweeks: [{
             pronogeeks: [{
                 type: Schema.Types.ObjectId,
-                ref: 'Pronogeek'
+                ref: PRONOGEEK_REF
             }],
             number: Number,
             points: {
@@ -126,4 +139,4 @@ const UserSchema = new Schema({
     timestamps: true
 });
 
-module.exports = model('User', UserSchema);
+module.exports = model(USER_REF, UserSchema);

@@ -4,10 +4,10 @@ const User = require('../models/User')
 const GeekLeague = require('../models/GeekLeague')
 const {
     populateHomeAndAwayTeams
-} = require('../populators')
+} = require('../utils/populators')
 const {
     profileFilter
-} = require('../helpers/constants')
+} = require('../utils/constants')
 
 exports.getMatchweekPronos = async(req, res) => {
     const {

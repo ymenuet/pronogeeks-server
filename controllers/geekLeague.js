@@ -3,7 +3,7 @@ const Season = require('../models/Season')
 const User = require('../models/User')
 const {
     geekleaguePopulator
-} = require('../populators')
+} = require('../utils/populators')
 
 exports.newLeagueProcess = async(req, res) => {
     const {

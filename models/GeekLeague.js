@@ -3,22 +3,28 @@ const {
     model
 } = require('mongoose')
 
+const {
+    USER_REF,
+    SEASON_REF,
+    GEEKLEAGUE_REF
+} = require('./refs')
+
 const GeekLeagueSchema = new Schema({
     name: String,
     creator: {
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: USER_REF
     },
     geeks: [{
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: USER_REF
     }],
     seasons: [{
         type: Schema.Types.ObjectId,
-        ref: 'Season'
+        ref: SEASON_REF
     }]
 }, {
     timestamps: true
 })
 
-module.exports = model('GeekLeague', GeekLeagueSchema)
+module.exports = model(GEEKLEAGUE_REF, GeekLeagueSchema)

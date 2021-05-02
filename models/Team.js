@@ -3,6 +3,11 @@ const {
     model
 } = require('mongoose')
 
+const {
+    SEASON_REF,
+    TEAM_REF
+} = require('./refs')
+
 const TeamSchema = new Schema({
     name: String,
     code: String,
@@ -12,7 +17,7 @@ const TeamSchema = new Schema({
     apiTeamID: String,
     season: {
         type: Schema.Types.ObjectId,
-        ref: 'Season'
+        ref: SEASON_REF
     },
     rank: Number,
     points: Number,
@@ -27,4 +32,4 @@ const TeamSchema = new Schema({
     timestamps: true
 })
 
-module.exports = model('Team', TeamSchema)
+module.exports = model(TEAM_REF, TeamSchema)

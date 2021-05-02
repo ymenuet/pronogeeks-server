@@ -3,19 +3,26 @@ const {
     model
 } = require('mongoose')
 
+const {
+    USER_REF,
+    SEASON_REF,
+    FIXTURE_REF,
+    PRONOGEEK_REF
+} = require('./refs')
+
 const PronogeekSchema = new Schema({
     geek: {
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: USER_REF
     },
     matchweek: Number,
     season: {
         type: Schema.Types.ObjectId,
-        ref: 'Season'
+        ref: SEASON_REF
     },
     fixture: {
         type: Schema.Types.ObjectId,
-        ref: 'Fixture'
+        ref: FIXTURE_REF
     },
     homeProno: {
         type: Number,
@@ -50,4 +57,4 @@ const PronogeekSchema = new Schema({
     timestamps: true
 })
 
-module.exports = model('Pronogeek', PronogeekSchema)
+module.exports = model(PRONOGEEK_REF, PronogeekSchema)

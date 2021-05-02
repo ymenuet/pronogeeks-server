@@ -11,27 +11,27 @@ const {
     determineWinnerFixture,
     calculateOdds,
     fetchAndSaveSeasonRanking
-} = require('../helpers/functions')
+} = require('../utils/helpers')
 
 const {
     getTeamsBySeasonFromAPI,
     getFixturesByMatchweekFromAPI,
     getWinnerOddByFixtureFromAPI,
-} = require('../helpers/apiFootball')
+} = require('../utils/fetchers/apiFootball')
 
 const {
-    profileFilter
-} = require('../helpers/constants')
+    profileFilter,
+    MILLISECONDS_IN_1_DAY,
+    MILLISECONDS_IN_30_MINUTES,
+    MILLISECONDS_IN_25_MINUTES
+} = require('../utils/constants')
 
 const {
     populateHomeAndAwayTeams,
     pronogeekPopulator,
     userPopulator
-} = require('../populators')
+} = require('../utils/populators')
 
-const MILLISECONDS_IN_1_DAY = 1000 * 60 * 60 * 24
-const MILLISECONDS_IN_30_MINUTES = 1000 * 60 * 30
-const MILLISECONDS_IN_25_MINUTES = 1000 * 60 * 25
 let updateRankingTimeoutId;
 
 

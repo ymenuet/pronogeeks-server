@@ -1,6 +1,6 @@
 const {
     profileFilter
-} = require("../helpers/constants")
+} = require("../constants")
 
 exports.userPopulator = [{
     path: 'seasons',

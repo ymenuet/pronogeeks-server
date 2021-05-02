@@ -5,15 +5,23 @@ const {
 
 const {
     LIST_OF_ALL_SEASON_STATUSES,
-    LIST_OF_ALL_SEASON_TYPES
+    LIST_OF_ALL_SEASON_TYPES,
+    seasonTypes,
+    seasonStatuses
 } = require('./enums/season')
+
+const {
+    FIXTURE_REF,
+    TEAM_REF,
+    SEASON_REF
+} = require('./refs')
 
 const SeasonSchema = new Schema({
     leagueName: String,
     type: {
         type: String,
         enum: LIST_OF_ALL_SEASON_TYPES,
-        default: 'League'
+        default: seasonTypes.LEAGUE
     },
     apiLeagueID: String,
     year: Number,
@@ -29,19 +37,19 @@ const SeasonSchema = new Schema({
     },
     fixtures: [{
         type: Schema.Types.ObjectId,
-        ref: 'Fixture'
+        ref: FIXTURE_REF
     }],
     status: {
         type: String,
         enum: LIST_OF_ALL_SEASON_STATUSES,
-        default: 'upcoming'
+        default: seasonStatuses.UPCOMING
     },
     rankedTeams: [{
         type: Schema.Types.ObjectId,
-        ref: 'Team'
+        ref: TEAM_REF
     }]
 }, {
     timestamps: true
 })
 
-module.exports = model('Season', SeasonSchema)
+module.exports = model(SEASON_REF, SeasonSchema)

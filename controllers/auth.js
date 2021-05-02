@@ -4,7 +4,7 @@ const Pronogeek = require('../models/Pronogeek')
 const transporter = require('../config/mailer')
 const {
     userPopulator
-} = require('../populators');
+} = require('../utils/populators');
 
 // Bcrypt to encrypt passwords
 const {
@@ -16,11 +16,11 @@ const bcryptSalt = 12;
 
 const {
     generateRandomToken
-} = require('../helpers/functions');
+} = require('../utils/helpers');
 
 const {
     profileFilter
-} = require('../helpers/constants');
+} = require('../utils/constants');
 
 exports.signupProcess = async(req, res, next) => {
     const {

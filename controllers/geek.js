@@ -3,10 +3,10 @@ const Team = require('../models/Team')
 const Season = require('../models/Season')
 const {
     geekPopulator
-} = require('../populators')
+} = require('../utils/populators')
 const {
     profileFilter
-} = require('../helpers/constants')
+} = require('../utils/constants')
 
 exports.getAllGeeks = async(req, res) => {
     const geeks = await User.find(null, null, {
