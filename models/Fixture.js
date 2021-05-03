@@ -14,8 +14,10 @@ const {
 } = require('./refs')
 
 const {
-    longStatuses,
-    shortStatuses
+    fixtureLongStatuses,
+    fixtureShortStatuses,
+    LIST_OF_ALL_FIXTURE_LONG_STATUSES,
+    LIST_OF_ALL_FIXTURE_SHORT_STATUSES
 } = require('./enums/fixture')
 
 const FixtureSchema = new Schema({
@@ -55,11 +57,13 @@ const FixtureSchema = new Schema({
     },
     status: {
         type: String,
-        default: longStatuses.TBD
+        enum: LIST_OF_ALL_FIXTURE_LONG_STATUSES,
+        default: fixtureLongStatuses.TBD
     },
     statusShort: {
         type: String,
-        default: shortStatuses.TBD
+        enum: LIST_OF_ALL_FIXTURE_SHORT_STATUSES,
+        default: fixtureShortStatuses.TBD
     },
     oddsWinHome: {
         type: Number,

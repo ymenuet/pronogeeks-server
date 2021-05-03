@@ -1,7 +1,9 @@
 const passport = require('passport');
 const User = require("../models/User");
 const Pronogeek = require('../models/Pronogeek')
+
 const transporter = require('../config/mailer')
+
 const {
     userPopulator
 } = require('../utils/populators');

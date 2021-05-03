@@ -2,9 +2,19 @@ const Pronogeek = require('../models/Pronogeek')
 const Fixture = require('../models/Fixture')
 const User = require('../models/User')
 const GeekLeague = require('../models/GeekLeague')
+
+const {
+    USER_REF
+} = require('../models/refs')
+
+const {
+    fixtureWinner
+} = require('../models/enums/fixture')
+
 const {
     populateHomeAndAwayTeams
 } = require('../utils/populators')
+
 const {
     profileFilter
 } = require('../utils/constants')
@@ -43,7 +53,7 @@ exports.getGeekleagueFixturePronos = async(req, res) => {
         })
         .populate({
             path: 'geek',
-            model: 'User',
+            model: USER_REF,
             select: profileFilter
         })
 
@@ -201,7 +211,7 @@ async function saveOneProno({
 
     const winner = homeProno > awayProno ? fixture.homeTeam.name :
         awayProno > homeProno ? fixture.awayTeam.name :
-        awayProno === homeProno ? 'Draw' :
+        awayProno === homeProno ? fixtureWinner.DRAW :
         null
 
     let pronogeek = await Pronogeek.findOne({

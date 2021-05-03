@@ -5,6 +5,16 @@ const {
     getSeasonRankingFromAPI
 } = require('../fetchers/apiFootball')
 
+const {
+    fixtureShortStatuses,
+    fixtureWinner
+} = require('../../models/enums/fixture')
+
+const {
+    matchweekBonusPoints,
+    ODDS_FACTOR
+} = require('../constants')
+
 exports.generateRandomToken = tokenLength => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let token = ''
@@ -13,17 +23,17 @@ exports.generateRandomToken = tokenLength => {
 }
 
 exports.matchFinished = statusShort => {
-    return statusShort !== 'TBD' &&
-        statusShort !== 'NS' &&
-        statusShort !== '1H' &&
-        statusShort !== 'HT' &&
-        statusShort !== '2H' &&
-        statusShort !== 'ET' &&
-        statusShort !== 'P' &&
-        statusShort !== 'BT' &&
-        statusShort !== 'SUSP' &&
-        statusShort !== 'INT' &&
-        statusShort !== 'PST'
+    return statusShort !== fixtureShortStatuses.TBD &&
+        statusShort !== fixtureShortStatuses.NS &&
+        statusShort !== fixtureShortStatuses.H1 &&
+        statusShort !== fixtureShortStatuses.HT &&
+        statusShort !== fixtureShortStatuses.H2 &&
+        statusShort !== fixtureShortStatuses.ET &&
+        statusShort !== fixtureShortStatuses.P &&
+        statusShort !== fixtureShortStatuses.BT &&
+        statusShort !== fixtureShortStatuses.SUSP &&
+        statusShort !== fixtureShortStatuses.INT &&
+        statusShort !== fixtureShortStatuses.PST
 }
 
 exports.determineWinnerFixture = (fixture, fixtureOdds) => {
@@ -45,7 +55,7 @@ exports.determineWinnerFixture = (fixture, fixtureOdds) => {
             winner = fixture.awayTeam.team_name
             points = fixtureOdds.oddsWinAway || 0
         } else {
-            winner = 'Draw'
+            winner = fixtureWinner.DRAW
             points = fixtureOdds.oddsDraw || 0
         }
     }
@@ -78,7 +88,7 @@ exports.calculateCorrectPronogeekPoints = (pronogeek, fixture, points) => {
         userFavTeam.toString() === pronogeek.fixture.awayTeam.name.toString()
     ) {
         pronogeek.bonusFavTeam = true
-        pronogeek.points += 30
+        pronogeek.points += matchweekBonusPoints.FAVORITE_TEAM
     }
 
     return pronogeek
@@ -107,22 +117,22 @@ exports.updateUserPoints = (user, seasonID, matchweekNumber) => {
     })
     switch (numberCorrects) {
         case 5:
-            bonusPointsCorrects = 50
+            bonusPointsCorrects = matchweekBonusPoints.CORRECT_5
             break;
         case 6:
-            bonusPointsCorrects = 100
+            bonusPointsCorrects = matchweekBonusPoints.CORRECT_6
             break;
         case 7:
-            bonusPointsCorrects = 200
+            bonusPointsCorrects = matchweekBonusPoints.CORRECT_7
             break;
         case 8:
-            bonusPointsCorrects = 300
+            bonusPointsCorrects = matchweekBonusPoints.CORRECT_8
             break;
         case 9:
-            bonusPointsCorrects = 500
+            bonusPointsCorrects = matchweekBonusPoints.CORRECT_9
             break;
         case 10:
-            bonusPointsCorrects = 700
+            bonusPointsCorrects = matchweekBonusPoints.CORRECT_10
             break;
         default:
             bonusPointsCorrects = 0
@@ -130,28 +140,28 @@ exports.updateUserPoints = (user, seasonID, matchweekNumber) => {
 
     switch (numberExacts) {
         case 3:
-            bonusPointsExacts = 50
+            bonusPointsExacts = matchweekBonusPoints.EXACT_3
             break;
         case 4:
-            bonusPointsExacts = 100
+            bonusPointsExacts = matchweekBonusPoints.EXACT_4
             break;
         case 5:
-            bonusPointsExacts = 200
+            bonusPointsExacts = matchweekBonusPoints.EXACT_5
             break;
         case 6:
-            bonusPointsExacts = 300
+            bonusPointsExacts = matchweekBonusPoints.EXACT_6
             break;
         case 7:
-            bonusPointsExacts = 500
+            bonusPointsExacts = matchweekBonusPoints.EXACT_7
             break;
         case 8:
-            bonusPointsExacts = 700
+            bonusPointsExacts = matchweekBonusPoints.EXACT_8
             break;
         case 9:
-            bonusPointsExacts = 1000
+            bonusPointsExacts = matchweekBonusPoints.EXACT_9
             break;
         case 10:
-            bonusPointsExacts = 1500
+            bonusPointsExacts = matchweekBonusPoints.EXACT_10
             break;
         default:
             bonusPointsExacts = 0
@@ -191,11 +201,11 @@ exports.calculateOdds = (odd, fixture) => {
     else if (bwinOdds.length > 0) unibetOdds = bwinOdds[0]
     else unibetOdds = odd.bookmakers[0]
 
-    const extractOdd = filterValue => Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === filterValue)[0].odd * 10)
+    const extractOdd = filterValue => Math.round(unibetOdds.bets[0].values.filter(oddValue => oddValue.value === filterValue)[0].odd * ODDS_FACTOR)
 
-    fixture.oddsWinHome = extractOdd('Home')
-    fixture.oddsDraw = extractOdd('Draw')
-    fixture.oddsWinAway = extractOdd('Away')
+    fixture.oddsWinHome = extractOdd(fixtureWinner.HOME)
+    fixture.oddsDraw = extractOdd(fixtureWinner.DRAW)
+    fixture.oddsWinAway = extractOdd(fixtureWinner.AWAY)
 
     return fixture
 }

@@ -1,9 +1,11 @@
 const User = require('../models/User')
 const Team = require('../models/Team')
 const Season = require('../models/Season')
+
 const {
     geekPopulator
 } = require('../utils/populators')
+
 const {
     profileFilter
 } = require('../utils/constants')

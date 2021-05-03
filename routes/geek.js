@@ -15,13 +15,17 @@ const {
     saveGeekLeagueHistory,
     updateProvRanking,
     updateSeasonPoints,
-} = require('../controllers/geek')
+} = require('../controllers/geek');
+
+const {
+    userRoles
+} = require('../models/enums/user');
 
 router.get('/', ensureLogin, catchErrors(getAllGeeks))
 
 router.get('/players/:seasonID', ensureLogin, catchErrors(getSeasonPlayers))
 
-router.get('/updatePoints/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(updateSeasonPoints))
+router.get('/updatePoints/:seasonID', ensureLogin, checkRole([userRoles.GEEK_ADMIN]), catchErrors(updateSeasonPoints))
 
 router.get('/:userID', catchErrors(getGeek))
 

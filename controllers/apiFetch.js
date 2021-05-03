@@ -5,6 +5,14 @@ const User = require('../models/User')
 const Pronogeek = require('../models/Pronogeek')
 
 const {
+    PRONOGEEK_REF
+} = require('../models/refs')
+
+const {
+    fixtureShortStatuses
+} = require('../models/enums/fixture')
+
+const {
     matchFinished,
     calculateCorrectPronogeekPoints,
     updateUserPoints,
@@ -256,7 +264,7 @@ async function saveUserProfilesWithUpdatedPoints(usersToUpdate, seasonID, matchw
                     path: 'matchweeks',
                     populate: {
                         path: 'pronogeeks',
-                        model: 'Pronogeek'
+                        model: PRONOGEEK_REF
                     }
                 }
             })
@@ -273,7 +281,7 @@ async function saveUserProfilesWithUpdatedPoints(usersToUpdate, seasonID, matchw
 
 async function fetchAndUpdatePostponedFixtures(leagueID) {
     const postponedFixturesDB = await Fixture.find({
-        statusShort: 'PST'
+        statusShort: fixtureShortStatuses.PST
     })
 
     if (postponedFixturesDB.length > 0) {

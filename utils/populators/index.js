@@ -2,46 +2,54 @@ const {
     profileFilter
 } = require("../constants")
 
+const {
+    SEASON_REF,
+    TEAM_REF,
+    USER_REF,
+    GEEKLEAGUE_REF,
+    FIXTURE_REF
+} = require('../../models/refs')
+
 exports.userPopulator = [{
     path: 'seasons',
     populate: [{
         path: 'season',
-        model: 'Season'
+        model: SEASON_REF
     }, {
         path: 'provisionalRanking',
-        model: 'Team'
+        model: TEAM_REF
     }, {
         path: 'favTeam',
-        model: 'Team'
+        model: TEAM_REF
     }]
 }, {
     path: 'geekLeagues',
-    model: 'GeekLeague',
+    model: GEEKLEAGUE_REF,
     populate: {
         path: 'creator',
-        model: 'User',
+        model: USER_REF,
     }
 }]
 
 exports.populateHomeAndAwayTeams = [{
     path: 'homeTeam',
-    model: 'Team'
+    model: TEAM_REF
 }, {
     path: 'awayTeam',
-    model: 'Team'
+    model: TEAM_REF
 }]
 
 exports.geekPopulator = {
     path: 'seasons',
     populate: {
         path: 'favTeam',
-        model: 'Team'
+        model: TEAM_REF
     }
 }
 
 exports.seasonPopulator = [{
     path: 'fixtures',
-    model: 'Fixture',
+    model: FIXTURE_REF,
     options: {
         sort: {
             date: 1
@@ -50,27 +58,27 @@ exports.seasonPopulator = [{
     populate: this.populateHomeAndAwayTeams
 }, {
     path: 'rankedTeams',
-    model: 'Team'
+    model: TEAM_REF
 }]
 
 exports.geekleaguePopulator = [{
     path: 'geeks',
-    model: 'User',
+    model: USER_REF,
     populate: this.geekPopulator,
     select: profileFilter,
 }, {
     path: 'creator',
-    model: 'User',
+    model: USER_REF,
     select: profileFilter,
 }]
 
 exports.pronogeekPopulator = [{
     path: 'fixture',
-    model: 'Fixture',
+    model: FIXTURE_REF,
     populate: this.populateHomeAndAwayTeams
 }, {
     path: 'geek',
-    model: 'User',
+    model: USER_REF,
     populate: this.geekPopulator,
     select: profileFilter,
 }]

@@ -14,20 +14,24 @@ const {
     catchErrors
 } = require('../middlewares/index')
 
+const {
+    userRoles
+} = require('../models/enums/user')
+
 //=============TEAMS=================
 
-router.get('/teams/season/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(fetchAllSeasonTeamsFromApi))
+router.get('/teams/season/:seasonID', ensureLogin, checkRole([userRoles.GEEK_ADMIN]), catchErrors(fetchAllSeasonTeamsFromApi))
 
-router.get('/ranking/season/:seasonID', ensureLogin, checkRole(['GEEK ADMIN']), catchErrors(fetchSeasonRankingFromApi))
+router.get('/ranking/season/:seasonID', ensureLogin, checkRole([userRoles.GEEK_ADMIN]), catchErrors(fetchSeasonRankingFromApi))
 
 
 //============FIXTURES===============
 
-router.get('/fixtures/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole(['GEEK ADMIN', 'SUPER GEEK']), catchErrors(fetchSeasonMatchweekFixturesFromApi))
+router.get('/fixtures/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole([userRoles.GEEK_ADMIN, userRoles.SUPER_GEEK]), catchErrors(fetchSeasonMatchweekFixturesFromApi))
 
 
 //===========FIXTURE ODDS============
 
-router.get('/odds/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole(['GEEK ADMIN', 'SUPER GEEK']), catchErrors(fetchNextMatchweekOddsFromApi))
+router.get('/odds/season/:seasonID/matchweek/:matchweekNumber', ensureLogin, checkRole([userRoles.GEEK_ADMIN, userRoles.SUPER_GEEK]), catchErrors(fetchNextMatchweekOddsFromApi))
 
 module.exports = router;

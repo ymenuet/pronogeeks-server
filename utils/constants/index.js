@@ -1,5 +1,23 @@
 exports.profileFilter = ['-password', '-email', '-confirmToken', '-renewToken', '-googleID', '-facebookID']
 
+exports.matchweekBonusPoints = {
+    FAVORITE_TEAM: 30,
+    CORRECT_5: 50,
+    CORRECT_6: 100,
+    CORRECT_7: 200,
+    CORRECT_8: 300,
+    CORRECT_9: 500,
+    CORRECT_10: 700,
+    EXACT_3: 50,
+    EXACT_4: 100,
+    EXACT_5: 200,
+    EXACT_6: 300,
+    EXACT_7: 500,
+    EXACT_8: 700,
+    EXACT_9: 1000,
+    EXACT_10: 1500,
+}
+
 exports.provRankingBonusPoints = {
     FIRST: 300,
     SECOND: 200,
@@ -17,3 +35,5 @@ exports.MILLISECONDS_IN_2_DAYS = 1000 * 60 * 60 * 24 * 2
 exports.MILLISECONDS_IN_1_DAY = 1000 * 60 * 60 * 24
 exports.MILLISECONDS_IN_30_MINUTES = 1000 * 60 * 30
 exports.MILLISECONDS_IN_25_MINUTES = 1000 * 60 * 25
+
+exports.ODDS_FACTOR = 10
