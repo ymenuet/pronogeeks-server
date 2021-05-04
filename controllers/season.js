@@ -102,7 +102,10 @@ function saveProvRankingPoints(season) {
     return async(player) => {
         const playerSeason = player.seasons.find(seas => seas.season.toString() === season._id.toString())
 
-        if (playerSeason.provRankingPointsDetails.addedToProfile) return
+        if (
+            playerSeason.provRankingPointsDetails &&
+            playerSeason.provRankingPointsDetails.addedToProfile
+        ) return
 
         const {
             provRankingPoints,
