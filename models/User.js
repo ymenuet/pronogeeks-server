@@ -99,6 +99,36 @@ const UserSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: TEAM_REF
         }],
+        provRankingPointsDetails: {
+            withoutBonus: {
+                type: Number,
+                default: 0
+            },
+            comboBonus: {
+                type: Number,
+                default: 0
+            },
+            favTeamBonus: {
+                type: Number,
+                default: 0
+            },
+            total: {
+                type: Number,
+                default: 0
+            },
+            addedToProfile: {
+                type: Boolean,
+                default: false
+            },
+        },
+        provRankingTotalPoints: {
+            type: Number,
+            default: 0
+        },
+        pointsWithoutProvRanking: {
+            type: Number,
+            default: 0
+        },
         favTeam: {
             type: Schema.Types.ObjectId,
             ref: TEAM_REF

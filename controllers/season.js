@@ -43,11 +43,11 @@ exports.closeSeason = async(req, res) => {
         }
     })
 
-    await Promise.all(seasonPlayers.map(countProvRankingPoints(season)))
+    await Promise.all(seasonPlayers.map(saveProvRankingPoints(season)))
 
-    // await Season.findByIdAndUpdate(seasonID, {
-    //     status: seasonStatuses.ENDED
-    // })
+    await Season.findByIdAndUpdate(seasonID, {
+        status: seasonStatuses.ENDED
+    })
 
     res.status(200).json({
         message: {
@@ -98,32 +98,64 @@ exports.deleteSeason = async(req, res) => {
     })
 }
 
-function countProvRankingPoints(season) {
-    return (player) => {
+function saveProvRankingPoints(season) {
+    return async(player) => {
         const playerSeason = player.seasons.find(seas => seas.season.toString() === season._id.toString())
 
-        let provRankingPoints = 0
-        let favTeamProvRankingPoints = 0
-        let combo = 0
+        if (playerSeason.provRankingPointsDetails.addedToProfile) return
 
-        playerSeason.provisionalRanking.forEach((team, index) => {
-            if (team.toString() === season.rankedTeams[index].toString()) {
-                provRankingPoints += calculatePointsByTeamRanking(index + 1)
-                combo++
-
-                if (team.toString() === playerSeason.favTeam.toString()) favTeamProvRankingPoints = provRankingBonusPoints.FAVORITE_TEAM
-            }
+        const {
+            provRankingPoints,
+            favTeamProvRankingPoints,
+            comboBonus
+        } = countProvRankingPoints({
+            playerSeason,
+            season
         })
 
-        const comboRankingPoints = calculateComboPoints(combo)
+        const provRankingTotalPoints = provRankingPoints + favTeamProvRankingPoints + comboBonus
 
-        const provRankingTotalBonus = provRankingPoints + favTeamProvRankingPoints + comboRankingPoints
+        playerSeason.provRankingPointsDetails = {
+            withoutBonus: provRankingPoints,
+            comboBonus,
+            favTeamBonus: favTeamProvRankingPoints,
+            total: provRankingTotalPoints,
+            addedToProfile: true
+        }
 
-        console.log(`${player.username}
-            total: ${provRankingTotalBonus}
-                ranking: ${provRankingPoints}
-                combo: ${comboRankingPoints}
-                edc: ${favTeamProvRankingPoints}`)
+        playerSeason.provRankingTotalPoints = provRankingTotalPoints
+
+        playerSeason.pointsWithoutProvRanking = playerSeason.totalPoints
+
+        playerSeason.totalPoints = playerSeason.pointsWithoutProvRanking + provRankingTotalPoints
+
+        await player.save()
+    }
+}
+
+function countProvRankingPoints({
+    playerSeason,
+    season
+}) {
+    let provRankingPoints = 0
+    let favTeamProvRankingPoints = 0
+    let combo = 0
+
+    playerSeason.provisionalRanking.forEach((team, index) => {
+        if (team.toString() === season.rankedTeams[index].toString()) {
+            provRankingPoints += calculatePointsByTeamRanking(index + 1)
+            combo++
+
+            if (team.toString() === playerSeason.favTeam.toString()) favTeamProvRankingPoints = provRankingBonusPoints.FAVORITE_TEAM
+        }
+    })
+
+    const comboBonus = calculateComboPoints(combo)
+
+    return {
+        provRankingPoints,
+        favTeamProvRankingPoints,
+        comboBonus
     }
 }
 
