@@ -25,7 +25,7 @@ exports.fixtureShortStatuses = {
     TBD: 'TBD',
     NS: 'NS',
     H1: '1H',
-    HT: 'Halftime',
+    HT: 'HT',
     H2: '2H',
     ET: 'ET',
     P: 'P',
