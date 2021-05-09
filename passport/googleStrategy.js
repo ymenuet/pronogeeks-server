@@ -2,6 +2,10 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 
+const {
+    emailFormatter
+} = require('../utils/helpers')
+
 const googleConfig = {
     clientID: process.env.GOOGLE_ID,
     clientSecret: process.env.GOOGLE_SECRET,
@@ -12,8 +16,9 @@ passport.use(new GoogleStrategy(googleConfig, async(accessToken, refreshToken, p
     const user = await User.findOne({
         googleID: profile.id
     })
+    const email = emailFormatter(profile.emails[0].value)
     const userWithEmail = await User.findOne({
-        email: profile.emails[0].value
+        email
     })
     if (!user && userWithEmail) return done(null, false, {
         message: {
@@ -34,7 +39,7 @@ passport.use(new GoogleStrategy(googleConfig, async(accessToken, refreshToken, p
             })
         }
         const user = await User.create({
-            email: profile.emails[0].value,
+            email,
             googleID: profile.id,
             photo: profile.photos[0].value,
             username: randomUsername,

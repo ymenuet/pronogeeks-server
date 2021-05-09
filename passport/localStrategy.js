@@ -1,13 +1,19 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+
+const User = require('../models/User');
+const {
+    emailFormatter
+} = require('../utils/helpers')
+
 
 passport.use(new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password'
     },
-    (email, password, done) => {
+    (emailNotFormatted, password, done) => {
+        const email = emailFormatter(emailNotFormatted)
         User.findOne({
                 email
             })

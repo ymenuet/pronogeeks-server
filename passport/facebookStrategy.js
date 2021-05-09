@@ -2,6 +2,10 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const User = require('../models/User');
 
+const {
+    emailFormatter
+} = require('../utils/helpers')
+
 const facebookConfig = {
     clientID: process.env.FACEBOOK_ID,
     clientSecret: process.env.FACEBOOK_SECRET,
@@ -9,12 +13,13 @@ const facebookConfig = {
     profileFields: ['id', 'email', 'name', 'photos']
 }
 
-passport.use(new FacebookStrategy(facebookConfig, async(accesToken, refreshToken, profile, done) => {
+passport.use(new FacebookStrategy(facebookConfig, async(accessToken, refreshToken, profile, done) => {
     const user = await User.findOne({
         facebookID: profile.id
     })
+    const email = emailFormatter(profile.emails[0].value)
     const userWithEmail = await User.findOne({
-        email: profile.emails[0].value
+        email
     })
     if (!user && userWithEmail) return done(null, false, {
         message: {
@@ -36,7 +41,7 @@ passport.use(new FacebookStrategy(facebookConfig, async(accesToken, refreshToken
         }
         const user = await User.create({
             facebookID: profile.id,
-            email: profile.emails[0].value,
+            email,
             photo: profile.photos[0].value,
             username: randomUsername,
             confirmed: true

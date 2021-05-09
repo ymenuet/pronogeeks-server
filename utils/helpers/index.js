@@ -15,6 +15,8 @@ const {
     ODDS_FACTOR
 } = require('../constants')
 
+exports.emailFormatter = email => email ? email.toLowerCase() : null
+
 exports.generateRandomToken = tokenLength => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let token = ''

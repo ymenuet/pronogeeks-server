@@ -17,6 +17,7 @@ const {
 const bcryptSalt = 12;
 
 const {
+    emailFormatter,
     generateRandomToken
 } = require('../utils/helpers');
 
@@ -26,11 +27,13 @@ const {
 
 exports.signupProcess = async(req, res, next) => {
     const {
-        email,
+        email: emailNotFormatted,
         username,
         password,
     } = req.body
     let photo = req.body.photo
+
+    const email = emailFormatter(emailNotFormatted)
 
     if (!username || !password || !email) return res.status(401).json({
         message: {
@@ -287,8 +290,16 @@ exports.confirmUser = async(req, res) => {
 
 exports.resetPwd = async(req, res) => {
     const {
-        email
+        email: emailNotFormatted
     } = req.body
+    const email = emailFormatter(emailNotFormatted)
+    if (!email) return res.status(401).json({
+        message: {
+            en: 'Please enter an email.',
+            fr: 'Merci de renseigner un email.'
+        }
+    })
+
     const renewToken = generateRandomToken(30)
     const user = await User.findOne({
         email
