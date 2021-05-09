@@ -22,7 +22,7 @@ exports.usernameFormatter = username => username ? username.toLowerCase().replac
 
 exports.usernameGenerator = (name) => `${name}Geek${Math.floor(Math.random() * 9999)}`
 
-exports.generateRandomUsername = name => {
+exports.generateRandomUsername = async name => {
     let randomUsername = usernameGenerator(name)
     let userRandom = await User.findOne({
         username: randomUsername

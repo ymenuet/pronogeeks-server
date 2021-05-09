@@ -28,7 +28,7 @@ passport.use(new GoogleStrategy(googleConfig, async(accessToken, refreshToken, p
         }
     })
     if (!user && !userWithEmail) {
-        const randomUsername = generateRandomUsername(profile.name.givenName)
+        const randomUsername = await generateRandomUsername(profile.name.givenName)
         const user = await User.create({
             email,
             googleID: profile.id,

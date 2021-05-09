@@ -29,7 +29,7 @@ passport.use(new FacebookStrategy(facebookConfig, async(accessToken, refreshToke
         }
     })
     if (!user && !userWithEmail) {
-        const randomUsername = generateRandomUsername(profile.name.givenName)
+        const randomUsername = await generateRandomUsername(profile.name.givenName)
         const user = await User.create({
             facebookID: profile.id,
             email,
