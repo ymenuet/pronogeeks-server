@@ -3,7 +3,8 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const User = require('../models/User');
 
 const {
-    emailFormatter
+    emailFormatter,
+    generateRandomUsername
 } = require('../utils/helpers')
 
 const facebookConfig = {
@@ -28,17 +29,7 @@ passport.use(new FacebookStrategy(facebookConfig, async(accessToken, refreshToke
         }
     })
     if (!user && !userWithEmail) {
-        const name = profile.name.givenName
-        let randomUsername = `${name}Geek${Math.floor(Math.random() * 999999)}`
-        let userRandom = await User.findOne({
-            username: randomUsername
-        })
-        while (userRandom) {
-            randomUsername = `${name}Geek${Math.floor(Math.random() * 999999)}`
-            userRandom = await User.findOne({
-                username: randomUsername
-            })
-        }
+        const randomUsername = generateRandomUsername(profile.name.givenName)
         const user = await User.create({
             facebookID: profile.id,
             email,

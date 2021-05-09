@@ -1,5 +1,6 @@
 const Team = require('../../models/Team')
 const Season = require('../../models/Season')
+const User = require('../../models/User')
 
 const {
     getSeasonRankingFromAPI
@@ -16,6 +17,24 @@ const {
 } = require('../constants')
 
 exports.emailFormatter = email => email ? email.toLowerCase() : null
+
+exports.usernameFormatter = username => username ? username.toLowerCase().replace(' ', '').replace("'", '') : null
+
+exports.usernameGenerator = (name) => `${name}Geek${Math.floor(Math.random() * 9999)}`
+
+exports.generateRandomUsername = name => {
+    let randomUsername = usernameGenerator(name)
+    let userRandom = await User.findOne({
+        username: randomUsername
+    })
+    while (userRandom) {
+        randomUsername = usernameGenerator(name)
+        userRandom = await User.findOne({
+            username: randomUsername
+        })
+    }
+    return randomUsername
+}
 
 exports.generateRandomToken = tokenLength => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
