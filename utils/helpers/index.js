@@ -18,20 +18,30 @@ const {
 
 exports.emailFormatter = email => email ? email.toLowerCase() : null
 
-exports.usernameFormatter = username => username ? username.toLowerCase().replace(' ', '').replace("'", '') : null
+exports.usernameFormatter = username => username ?
+    username
+    .toLowerCase()
+    .replace(' ', '') :
+    null
+
+exports.doesUsernameExist = async username => {
+    const user = await await User.findOne({
+        username: {
+            $regex: this.usernameFormatter(username),
+            $options: ['i', 'x']
+        }
+    })
+    return !!user
+}
 
 exports.usernameGenerator = (name) => `${name}Geek${Math.floor(Math.random() * 9999)}`
 
 exports.generateRandomUsername = async name => {
-    let randomUsername = usernameGenerator(name)
-    let userRandom = await User.findOne({
-        username: randomUsername
-    })
-    while (userRandom) {
-        randomUsername = usernameGenerator(name)
-        userRandom = await User.findOne({
-            username: randomUsername
-        })
+    let randomUsername = this.usernameGenerator(name)
+    let usernameExists = await this.doesUsernameExist(randomUsername)
+    while (usernameExists) {
+        randomUsername = this.usernameGenerator(name)
+        usernameExists = await this.doesUsernameExist(randomUsername)
     }
     return randomUsername
 }

@@ -18,6 +18,7 @@ const bcryptSalt = 12;
 
 const {
     emailFormatter,
+    doesUsernameExist,
     generateRandomToken
 } = require('../utils/helpers');
 
@@ -55,9 +56,7 @@ exports.signupProcess = async(req, res, next) => {
         }
     })
 
-    const usernameExists = await User.findOne({
-        username
-    })
+    const usernameExists = doesUsernameExist(username)
 
     if (usernameExists) return res.status(401).json({
         message: {
@@ -154,9 +153,7 @@ exports.editProfileProcess = async(req, res) => {
             fr: "Tu ne peux pas sauvegarder ton profil sans pseudo."
         }
     })
-    const existingUsername = await User.findOne({
-        username
-    })
+    const existingUsername = await doesUsernameExist(username)
     if (existingUsername) return res.status(401).json({
         message: {
             en: "Please indicate a unique username",
