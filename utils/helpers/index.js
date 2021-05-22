@@ -21,14 +21,14 @@ exports.emailFormatter = email => email ? email.toLowerCase() : null
 exports.usernameFormatter = username => username ?
     username
     .toLowerCase()
-    .replace(' ', '') :
+    .replaceAll(' ', '') :
     null
 
 exports.doesUsernameExist = async username => {
     const user = await await User.findOne({
         username: {
-            $regex: this.usernameFormatter(username),
-            $options: ['i', 'x']
+            $regex: `^${this.usernameFormatter(username)}$`,
+            $options: 'ix'
         }
     })
     return !!user
