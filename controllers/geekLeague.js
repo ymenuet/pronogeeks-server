@@ -1,41 +1,29 @@
 const GeekLeague = require('../models/GeekLeague')
-const Season = require('../models/Season')
 const User = require('../models/User')
 
 const {
     geekleaguePopulator
 } = require('../utils/populators')
 
-const {
-    seasonStatuses
-} = require('../models/enums/season')
-
 exports.newLeagueProcess = async(req, res) => {
     const {
         name,
-        geeks
+        geeks,
+        season
     } = req.body
     const creator = req.user._id
-    const seasons = await Season.find({
-        $or: [{
-            status: seasonStatuses.UPCOMING
-        }, {
-            status: seasonStatuses.UNDERWAY
-        }]
-    }, {
-        _id: 1
-    })
+
     const geekleagueCreated = await GeekLeague.create({
         name,
         creator,
-        seasons,
+        season,
         geeks: [creator, ...geeks]
     })
     const leagueID = geekleagueCreated._id
 
     const users = await User.find({
         _id: {
-            $in: [creator, ...geeks]
+            $in: geekleagueCreated._id.geeks
         }
     })
 

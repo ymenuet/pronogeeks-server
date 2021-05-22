@@ -70,6 +70,9 @@ exports.geekleaguePopulator = [{
     path: 'creator',
     model: USER_REF,
     select: profileFilter,
+}, {
+    path: 'season',
+    model: SEASON_REF,
 }]
 
 exports.pronogeekPopulator = [{

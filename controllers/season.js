@@ -70,6 +70,23 @@ exports.getUndergoingSeasons = async(req, res) => {
     })
 }
 
+exports.getUpcomingAndUndergoingSeasons = async(req, res) => {
+    const seasons = await Season.find({
+        $or: [{
+            status: seasonStatuses.UPCOMING
+        }, {
+            status: seasonStatuses.UNDERWAY
+        }]
+    }, null, {
+        sort: {
+            startDate: -1
+        }
+    })
+    res.status(200).json({
+        seasons
+    })
+}
+
 exports.createSeason = async(req, res) => {
     const season = await Season.create(req.body)
     res.status(200).json({

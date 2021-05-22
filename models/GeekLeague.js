@@ -19,10 +19,10 @@ const GeekLeagueSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: USER_REF
     }],
-    seasons: [{
+    season: {
         type: Schema.Types.ObjectId,
         ref: SEASON_REF
-    }]
+    }
 }, {
     timestamps: true
 })
