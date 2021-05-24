@@ -23,7 +23,7 @@ exports.newLeagueProcess = async(req, res) => {
 
     const users = await User.find({
         _id: {
-            $in: geekleagueCreated._id.geeks
+            $in: geekleagueCreated.geeks
         }
     })
 
