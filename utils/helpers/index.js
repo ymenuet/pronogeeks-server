@@ -21,7 +21,7 @@ exports.emailFormatter = email => email ? email.toLowerCase() : null
 exports.usernameFormatter = username => username ?
     username
     .toLowerCase()
-    .replaceAll(' ', '') :
+    .replace(/ /g, '') :
     null
 
 exports.doesUsernameExist = async username => {
