@@ -12,7 +12,6 @@ const {
     saveFavTeam,
     getAllGeeks,
     getGeek,
-    saveGeekLeagueHistory,
     updateProvRanking,
     updateSeasonPoints,
 } = require('../controllers/geek');
@@ -28,8 +27,6 @@ router.get('/players/:seasonID', ensureLogin, catchErrors(getSeasonPlayers))
 router.get('/updatePoints/:seasonID', ensureLogin, checkRole([userRoles.GEEK_ADMIN]), catchErrors(updateSeasonPoints))
 
 router.get('/:userID', catchErrors(getGeek))
-
-router.put('/geekLeagueHistory/:geekLeagueID', ensureLogin, catchErrors(saveGeekLeagueHistory))
 
 router.put('/provisionalRanking/:seasonID', ensureLogin, catchErrors(updateProvRanking))
 

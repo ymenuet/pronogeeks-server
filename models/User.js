@@ -50,10 +50,6 @@ const UserSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: GEEKLEAGUE_REF
     }],
-    geekLeagueHistory: {
-        type: Schema.Types.ObjectId,
-        ref: GEEKLEAGUE_REF
-    },
     friends: [{
         type: Schema.Types.ObjectId,
         ref: USER_REF

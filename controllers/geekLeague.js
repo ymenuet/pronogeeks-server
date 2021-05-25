@@ -158,15 +158,6 @@ exports.deleteLeague = async(req, res) => {
         await geek.save()
     }))
 
-    const usersWithGeekLeagueInHistory = await User.find({
-        geekLeagueHistory: geekLeagueID
-    })
-
-    await Promise.all(usersWithGeekLeagueInHistory.map(async user => {
-        user.geekLeagueHistory = null
-        await user.save()
-    }))
-
     await GeekLeague.findByIdAndDelete(geekLeagueID)
 
     res.status(200).json({
@@ -200,7 +191,7 @@ exports.outLeague = async(req, res) => {
         _id: userID
     })
     user.geekLeagues = user.geekLeagues.filter(league => league.toString() !== geekLeagueID.toString())
-    if (`${user.geekLeagueHistory}` === `${geekLeagueID}`) user.geekLeagueHistory = null
+
     await user.save()
 
     res.status(200).json({
