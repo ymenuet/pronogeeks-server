@@ -92,6 +92,7 @@ require('./passport')(app);
 
 app.use('/auth', require('./routes/auth'));
 app.use('/api', require('./routes/index'));
+app.use('/api/admin', require('./routes/admin'))
 app.use('/api/seasons', require('./routes/season'))
 app.use('/api/pronogeeks', require('./routes/pronogeek'))
 app.use('/api/geek', require('./routes/geek'))
