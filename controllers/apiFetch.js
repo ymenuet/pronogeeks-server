@@ -1,317 +1,346 @@
-const Team = require('../models/Team')
-const Season = require('../models/Season')
-const Fixture = require('../models/Fixture')
-const User = require('../models/User')
-const Pronogeek = require('../models/Pronogeek')
+const Team = require("../models/Team");
+const Season = require("../models/Season");
+const Fixture = require("../models/Fixture");
+const User = require("../models/User");
+const Pronogeek = require("../models/Pronogeek");
+
+const { PRONOGEEK_REF } = require("../models/refs");
+
+const { fixtureShortStatuses } = require("../models/enums/fixture");
 
 const {
-    PRONOGEEK_REF
-} = require('../models/refs')
+  matchFinished,
+  calculateCorrectPronogeekPoints,
+  updateUserPoints,
+  determineWinnerFixture,
+  calculateOdds,
+  fetchAndSaveSeasonRanking,
+} = require("../utils/helpers");
 
 const {
-    fixtureShortStatuses
-} = require('../models/enums/fixture')
+  getSeasonFromAPI,
+  getTeamsBySeasonFromAPI,
+  getFixturesByMatchweekFromAPI,
+  getWinnerOddByFixtureFromAPI,
+} = require("../utils/fetchers/apiFootball");
 
 const {
-    matchFinished,
-    calculateCorrectPronogeekPoints,
-    updateUserPoints,
-    determineWinnerFixture,
-    calculateOdds,
-    fetchAndSaveSeasonRanking
-} = require('../utils/helpers')
+  profileFilter,
+  MILLISECONDS_IN_1_DAY,
+  MILLISECONDS_IN_30_MINUTES,
+  MILLISECONDS_IN_25_MINUTES,
+} = require("../utils/constants");
 
 const {
-    getTeamsBySeasonFromAPI,
-    getFixturesByMatchweekFromAPI,
-    getWinnerOddByFixtureFromAPI,
-} = require('../utils/fetchers/apiFootball')
-
-const {
-    profileFilter,
-    MILLISECONDS_IN_1_DAY,
-    MILLISECONDS_IN_30_MINUTES,
-    MILLISECONDS_IN_25_MINUTES
-} = require('../utils/constants')
-
-const {
-    populateHomeAndAwayTeams,
-    pronogeekPopulator,
-    userPopulator
-} = require('../utils/populators')
+  populateHomeAndAwayTeams,
+  pronogeekPopulator,
+  userPopulator,
+} = require("../utils/populators");
 
 let updateRankingTimeoutId;
 
+exports.fetchAllSeasonTeamsFromApi = async (req, res) => {
+  const { seasonID } = req.params;
+  const season = await Season.findById(seasonID);
+  const leagueID = season.apiLeagueID;
 
-exports.fetchAllSeasonTeamsFromApi = async(req, res) => {
-    const {
-        seasonID
-    } = req.params
-    const season = await Season.findById(seasonID)
-    const leagueID = season.apiLeagueID
+  const teamsAPI = await getTeamsBySeasonFromAPI(leagueID);
 
-    const teamsAPI = await getTeamsBySeasonFromAPI(leagueID)
+  res.status(200).json({
+    teamsAPI,
+  });
+};
 
-    res.status(200).json({
-        teamsAPI
-    })
-}
+exports.fetchFullSeasonInfoFromApi = async (req, res) => {
+  const { leagueID } = req.params;
 
+  const season = await getSeasonFromAPI(leagueID);
 
-exports.fetchSeasonRankingFromApi = async(req, res) => {
-    const {
-        seasonID
-    } = req.params
+  res.status(200).json({
+    season,
+  });
+};
 
-    const rankedTeams = await fetchAndSaveSeasonRanking(seasonID)
+exports.fetchSeasonRankingFromApi = async (req, res) => {
+  const { seasonID } = req.params;
 
-    res.status(200).json({
-        rankedTeams
-    })
-}
+  const rankedTeams = await fetchAndSaveSeasonRanking(seasonID);
 
+  res.status(200).json({
+    rankedTeams,
+  });
+};
 
 // The function below goes to fetch the updated scores and status of the games of a specific season and matchweek.
 // Once it has the results, it updates the games.
 // Then, it updates the pronogeeks of every game that changed status and is now finished, with the points and bonus points.
 // And to finish, it updates all the profiles of the users that had bet on the updated games.
-exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
-    const {
-        seasonID,
-        matchweekNumber
-    } = req.params
-    const season = await Season.findById(seasonID)
-    const leagueID = season.apiLeagueID
+exports.fetchSeasonMatchweekFixturesFromApi = async (req, res) => {
+  const { seasonID, matchweekNumber } = req.params;
+  const season = await Season.findById(seasonID);
+  const leagueID = season.apiLeagueID;
 
-    // Cancel fetch if all matches already finished, not to use a request without needing to
-    const matchweekFixtures = await Fixture.find({
-        matchweek: matchweekNumber,
-        season: seasonID
-    })
-    const fixturesLeftToPlay = matchweekFixtures.filter(fixture => !matchFinished(fixture.statusShort))
-    if (fixturesLeftToPlay.length < 1) return res.status(200).json({
-        message: {
-            en: `There is no game to update. They are all finished.`,
-            fr: `Tous les matchs sont déjà finis. Il n'y a rien à mettre à jour.`
-        }
-    })
+  // Cancel fetch if all matches already finished, not to use a request without needing to
+  const matchweekFixtures = await Fixture.find({
+    matchweek: matchweekNumber,
+    season: seasonID,
+  });
+  const fixturesLeftToPlay = matchweekFixtures.filter(
+    (fixture) => !matchFinished(fixture.statusShort)
+  );
+  if (fixturesLeftToPlay.length < 1)
+    return res.status(200).json({
+      message: {
+        en: `There is no game to update. They are all finished.`,
+        fr: `Tous les matchs sont déjà finis. Il n'y a rien à mettre à jour.`,
+      },
+    });
 
-    // No "await" because it is not important for the rest of this function and we don't want to block it if there is an error here
-    fetchAndUpdatePostponedFixtures(leagueID)
+  // No "await" because it is not important for the rest of this function and we don't want to block it if there is an error here
+  fetchAndUpdatePostponedFixtures(leagueID);
 
+  let rankingToUpdate = false;
 
-    let rankingToUpdate = false
+  const usersToUpdate = [];
 
-    const usersToUpdate = []
+  const fixturesAPI = await getFixturesByMatchweekFromAPI(
+    leagueID,
+    matchweekNumber
+  );
 
+  const fixtures = await Promise.all(
+    fixturesAPI.map(async (fixture) => {
+      const homeTeam = await Team.findOne({
+        apiTeamID: fixture.homeTeam.team_id,
+        season: seasonID,
+      });
+      const homeTeamId = homeTeam._id;
+      const awayTeam = await Team.findOne({
+        apiTeamID: fixture.awayTeam.team_id,
+        season: seasonID,
+      });
+      const awayTeamId = awayTeam._id;
 
-    const fixturesAPI = await getFixturesByMatchweekFromAPI(leagueID, matchweekNumber)
+      let fixtureFromDB = await Fixture.findOne({
+        apiFixtureID: fixture.fixture_id,
+        season: seasonID,
+      }).populate(populateHomeAndAwayTeams);
 
-    const fixtures = await Promise.all(fixturesAPI.map(async fixture => {
+      const matchFinishedSinceLastUpdate =
+        matchFinished(fixture.statusShort) &&
+        fixture.statusShort !== fixtureFromDB.statusShort;
 
-        const homeTeam = await Team.findOne({
-            apiTeamID: fixture.homeTeam.team_id,
-            season: seasonID
-        })
-        const homeTeamId = homeTeam._id
-        const awayTeam = await Team.findOne({
-            apiTeamID: fixture.awayTeam.team_id,
-            season: seasonID
-        })
-        const awayTeamId = awayTeam._id
+      if (!rankingToUpdate) rankingToUpdate = matchFinishedSinceLastUpdate;
 
-        let fixtureFromDB = await Fixture.findOne({
-                apiFixtureID: fixture.fixture_id,
-                season: seasonID
-            })
-            .populate(populateHomeAndAwayTeams)
+      const { goalsHomeTeam, goalsAwayTeam, timeElapsed, winner, points } =
+        determineWinnerFixture(fixture, fixtureFromDB);
 
-        const matchFinishedSinceLastUpdate = matchFinished(fixture.statusShort) && (fixture.statusShort !== fixtureFromDB.statusShort)
-
-        if (!rankingToUpdate) rankingToUpdate = matchFinishedSinceLastUpdate
-
-        const {
+      if (!matchFinished(fixtureFromDB.statusShort)) {
+        fixtureFromDB = await Fixture.findOneAndUpdate(
+          {
+            apiFixtureID: fixture.fixture_id,
+            season: seasonID,
+          },
+          {
+            matchweek: matchweekNumber,
+            date: fixture.event_date,
+            homeTeam: homeTeamId,
+            awayTeam: awayTeamId,
             goalsHomeTeam,
             goalsAwayTeam,
-            timeElapsed,
             winner,
-            points
-        } = determineWinnerFixture(fixture, fixtureFromDB)
+            status: fixture.status,
+            statusShort: fixture.statusShort,
+            timeElapsed,
+            lastScoreUpdate: Date.now(),
+          },
+          {
+            new: true,
+          }
+        ).populate(populateHomeAndAwayTeams);
 
-        if (!matchFinished(fixtureFromDB.statusShort)) {
+        if (matchFinished(fixtureFromDB.statusShort)) {
+          const pronogeeks = await Pronogeek.find({
+            fixture: fixtureFromDB._id,
+          }).populate(pronogeekPopulator);
 
-            fixtureFromDB = await Fixture.findOneAndUpdate({
-                    apiFixtureID: fixture.fixture_id,
-                    season: seasonID
-                }, {
-                    matchweek: matchweekNumber,
-                    date: fixture.event_date,
-                    homeTeam: homeTeamId,
-                    awayTeam: awayTeamId,
-                    goalsHomeTeam,
-                    goalsAwayTeam,
-                    winner,
-                    status: fixture.status,
-                    statusShort: fixture.statusShort,
-                    timeElapsed,
-                    lastScoreUpdate: Date.now()
-                }, {
-                    new: true
-                })
-                .populate(populateHomeAndAwayTeams)
+          await Promise.all(
+            pronogeeks.map(async (pronogeek) => {
+              if (!pronogeek.addedToProfile) {
+                if (pronogeek.winner === winner && pronogeek.geek) {
+                  const geekID = pronogeek.geek._id.toString();
+                  if (!usersToUpdate.includes(geekID))
+                    usersToUpdate.push(geekID);
 
-            if (matchFinished(fixtureFromDB.statusShort)) {
-
-                const pronogeeks = await Pronogeek.find({
-                        fixture: fixtureFromDB._id
-                    })
-                    .populate(pronogeekPopulator)
-
-                await Promise.all(pronogeeks.map(async pronogeek => {
-                    if (!pronogeek.addedToProfile) {
-
-                        if (pronogeek.winner === winner && pronogeek.geek) {
-
-                            const geekID = pronogeek.geek._id.toString()
-                            if (!usersToUpdate.includes(geekID)) usersToUpdate.push(geekID)
-
-                            pronogeek = calculateCorrectPronogeekPoints(pronogeek, fixtureFromDB, points)
-                        }
-
-                        pronogeek.addedToProfile = true
-                        await pronogeek.save()
-                    }
-                    return pronogeek
-                }))
-            }
-        }
-        return fixtureFromDB
-    }))
-
-    await saveUserProfilesWithUpdatedPoints(usersToUpdate, seasonID, matchweekNumber)
-
-    if (rankingToUpdate) {
-        clearTimeout(updateRankingTimeoutId)
-        updateRankingTimeoutId = setTimeout(() => fetchAndSaveSeasonRanking(seasonID), MILLISECONDS_IN_25_MINUTES)
-    }
-
-    const user = await User.findById(req.user._id)
-        .populate(userPopulator)
-        .select(profileFilter)
-
-    const pronogeeks = await Pronogeek.find({
-        geek: req.user._id,
-        season: seasonID,
-        matchweek: matchweekNumber
-    })
-
-    res.status(200).json({
-        fixtures,
-        user,
-        pronogeeks
-    })
-}
-
-exports.fetchNextMatchweekOddsFromApi = async(req, res) => {
-    const {
-        seasonID,
-        matchweekNumber
-    } = req.params
-
-    // Cancel fetch if matches already finished
-    const matchweekFixtures = await Fixture.find({
-            matchweek: matchweekNumber,
-            season: seasonID
-        })
-        .populate(populateHomeAndAwayTeams)
-
-    const fixturesLeftToPlay = matchweekFixtures.filter(fixture => new Date(fixture.date).getTime() - Date.now() > MILLISECONDS_IN_30_MINUTES)
-    if (fixturesLeftToPlay.length < 1) return res.status(200).json({
-        message: {
-            en: `There is no game to update. They are all finished or starting in less than 30min.`,
-            fr: `Tous les matchs sont déjà finis ou commencent dans moins de 30min. Il n'y a rien à mettre à jour.`
-        }
-    })
-
-    const fixtureUpdatedOdds = await Promise.all(fixturesLeftToPlay.map(async fixture => {
-        const odd = await getWinnerOddByFixtureFromAPI(fixture.apiFixtureID)
-
-        if (odd) {
-            fixture = calculateOdds(odd, fixture)
-        }
-
-        fixture.lastOddsUpdate = Date.now()
-        await fixture.save()
-
-        return fixture
-    }))
-
-    res.status(200).json({
-        fixtures: fixtureUpdatedOdds
-    })
-}
-
-
-async function saveUserProfilesWithUpdatedPoints(usersToUpdate, seasonID, matchweekNumber) {
-    await Promise.all(usersToUpdate.map(async userID => {
-
-        let user = await User.findOne({
-                _id: userID
-            })
-            .populate({
-                path: 'seasons',
-                populate: {
-                    path: 'matchweeks',
-                    populate: {
-                        path: 'pronogeeks',
-                        model: PRONOGEEK_REF
-                    }
+                  pronogeek = calculateCorrectPronogeekPoints(
+                    pronogeek,
+                    fixtureFromDB,
+                    points
+                  );
                 }
+
+                pronogeek.addedToProfile = true;
+                await pronogeek.save();
+              }
+              return pronogeek;
             })
-
-        if (user) {
-            user = updateUserPoints(user, seasonID, matchweekNumber)
-            await user.save()
+          );
         }
+      }
+      return fixtureFromDB;
+    })
+  );
 
-        return user
-    }))
+  await saveUserProfilesWithUpdatedPoints(
+    usersToUpdate,
+    seasonID,
+    matchweekNumber
+  );
+
+  if (rankingToUpdate) {
+    clearTimeout(updateRankingTimeoutId);
+    updateRankingTimeoutId = setTimeout(
+      () => fetchAndSaveSeasonRanking(seasonID),
+      MILLISECONDS_IN_25_MINUTES
+    );
+  }
+
+  const user = await User.findById(req.user._id)
+    .populate(userPopulator)
+    .select(profileFilter);
+
+  const pronogeeks = await Pronogeek.find({
+    geek: req.user._id,
+    season: seasonID,
+    matchweek: matchweekNumber,
+  });
+
+  res.status(200).json({
+    fixtures,
+    user,
+    pronogeeks,
+  });
+};
+
+exports.fetchNextMatchweekOddsFromApi = async (req, res) => {
+  const { seasonID, matchweekNumber } = req.params;
+
+  // Cancel fetch if matches already finished
+  const matchweekFixtures = await Fixture.find({
+    matchweek: matchweekNumber,
+    season: seasonID,
+  }).populate(populateHomeAndAwayTeams);
+
+  const fixturesLeftToPlay = matchweekFixtures.filter(
+    (fixture) =>
+      new Date(fixture.date).getTime() - Date.now() > MILLISECONDS_IN_30_MINUTES
+  );
+  if (fixturesLeftToPlay.length < 1)
+    return res.status(200).json({
+      message: {
+        en: `There is no game to update. They are all finished or starting in less than 30min.`,
+        fr: `Tous les matchs sont déjà finis ou commencent dans moins de 30min. Il n'y a rien à mettre à jour.`,
+      },
+    });
+
+  const fixtureUpdatedOdds = await Promise.all(
+    fixturesLeftToPlay.map(async (fixture) => {
+      const odd = await getWinnerOddByFixtureFromAPI(fixture.apiFixtureID);
+
+      if (odd) {
+        fixture = calculateOdds(odd, fixture);
+      }
+
+      fixture.lastOddsUpdate = Date.now();
+      await fixture.save();
+
+      return fixture;
+    })
+  );
+
+  res.status(200).json({
+    fixtures: fixtureUpdatedOdds,
+  });
+};
+
+async function saveUserProfilesWithUpdatedPoints(
+  usersToUpdate,
+  seasonID,
+  matchweekNumber
+) {
+  await Promise.all(
+    usersToUpdate.map(async (userID) => {
+      let user = await User.findOne({
+        _id: userID,
+      }).populate({
+        path: "seasons",
+        populate: {
+          path: "matchweeks",
+          populate: {
+            path: "pronogeeks",
+            model: PRONOGEEK_REF,
+          },
+        },
+      });
+
+      if (user) {
+        user = updateUserPoints(user, seasonID, matchweekNumber);
+        await user.save();
+      }
+
+      return user;
+    })
+  );
 }
-
 
 async function fetchAndUpdatePostponedFixtures(leagueID) {
-    const postponedFixturesDB = await Fixture.find({
-        statusShort: fixtureShortStatuses.PST
-    })
+  const postponedFixturesDB = await Fixture.find({
+    statusShort: fixtureShortStatuses.PST,
+  });
 
-    if (postponedFixturesDB.length > 0) {
+  if (postponedFixturesDB.length > 0) {
+    const uniqueMatchweeks = [];
+    postponedFixturesDB.forEach((fixture) => {
+      if (
+        !uniqueMatchweeks.includes(fixture.matchweek) &&
+        Date.now() - new Date(fixture.lastScoreUpdate).getTime() >
+          MILLISECONDS_IN_1_DAY &&
+        Date.now() - new Date(fixture.date).getTime() > 0
+      )
+        uniqueMatchweeks.push(fixture.matchweek);
+    });
 
-        const uniqueMatchweeks = []
-        postponedFixturesDB.forEach(fixture => {
-            if (!uniqueMatchweeks.includes(fixture.matchweek) &&
-                Date.now() - new Date(fixture.lastScoreUpdate).getTime() > MILLISECONDS_IN_1_DAY &&
-                Date.now() - new Date(fixture.date).getTime() > 0
-            ) uniqueMatchweeks.push(fixture.matchweek)
+    if (uniqueMatchweeks.length > 0) {
+      const matchweeksWithPostponedFixturesAPI = await Promise.all(
+        uniqueMatchweeks.map(async (matchweekNum) => {
+          return await getFixturesByMatchweekFromAPI(leagueID, matchweekNum);
         })
+      );
 
-        if (uniqueMatchweeks.length > 0) {
-            const matchweeksWithPostponedFixturesAPI = await Promise.all(uniqueMatchweeks.map(async matchweekNum => {
-                return await getFixturesByMatchweekFromAPI(leagueID, matchweekNum)
-            }))
+      const fixturesToUpdate = [];
+      matchweeksWithPostponedFixturesAPI.forEach((matchweek) =>
+        fixturesToUpdate.push(...matchweek)
+      );
 
-            const fixturesToUpdate = []
-            matchweeksWithPostponedFixturesAPI.forEach(matchweek => fixturesToUpdate.push(...matchweek))
+      const postponedFixturesToUpdate = fixturesToUpdate.filter((fixture) =>
+        postponedFixturesDB
+          .map((fixtureDB) => fixtureDB.apiFixtureID.toString())
+          .includes(fixture.fixture_id.toString())
+      );
 
-            const postponedFixturesToUpdate = fixturesToUpdate.filter(fixture => postponedFixturesDB.map(fixtureDB => fixtureDB.apiFixtureID.toString()).includes(fixture.fixture_id.toString()))
-
-            await Promise.all(postponedFixturesToUpdate.map(async fixture => {
-                await Fixture.findOneAndUpdate({
-                    apiFixtureID: fixture.fixture_id
-                }, {
-                    date: fixture.event_date,
-                    lastScoreUpdate: Date.now()
-                })
-            }))
-        }
+      await Promise.all(
+        postponedFixturesToUpdate.map(async (fixture) => {
+          await Fixture.findOneAndUpdate(
+            {
+              apiFixtureID: fixture.fixture_id,
+            },
+            {
+              date: fixture.event_date,
+              lastScoreUpdate: Date.now(),
+            }
+          );
+        })
+      );
     }
+  }
 }
