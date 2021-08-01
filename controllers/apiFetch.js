@@ -76,7 +76,7 @@ exports.fetchFullSeasonInfoFromApi = async (req, res) => {
     countryCode: seasonAPI.country_code,
     status: seasonStatuses.UNDERWAY,
     apiLeagueID: leagueID,
-    year: seasonAPI.seasonAPI,
+    year: seasonAPI.season,
     startDate: seasonAPI.season_start,
     endDate: seasonAPI.season_end,
     logo: seasonAPI.logo,
