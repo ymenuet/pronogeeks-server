@@ -9,19 +9,32 @@ const apiFootballHeaders = {
 
 const apiFootballV2BaseUrl = "https://api-football-v1.p.rapidapi.com/v2/";
 
-const apiFootballV3BaseUrl = "https://api-football-v1.p.rapidapi.com/v3/";
-
-exports.getSeasonFromAPI = async (leagueID) => {
+exports.getLeaguesByCountry = async (country) => {
   const {
-    data: { response },
+    data: { api },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV3BaseUrl}leagues`,
-    params: { id: leagueID, current: true },
+    url: `${apiFootballV2BaseUrl}leagues/country/${country}`,
     headers: apiFootballHeaders,
   });
 
-  return response;
+  return api;
+};
+
+exports.getSeasonFromAPI = async (leagueID) => {
+  const {
+    data: {
+      api: {
+        leagues: [season],
+      },
+    },
+  } = await axios({
+    method: "GET",
+    url: `${apiFootballV2BaseUrl}leagues/league/${leagueID}`,
+    headers: apiFootballHeaders,
+  });
+
+  return season;
 };
 
 exports.getTeamsBySeasonFromAPI = async (leagueID) => {
@@ -50,6 +63,23 @@ exports.getSeasonRankingFromAPI = async (leagueID) => {
   });
 
   return standings;
+};
+
+exports.getFixturesBySeasonFromAPI = async (leagueID) => {
+  const {
+    data: {
+      api: { fixtures },
+    },
+  } = await axios({
+    method: "GET",
+    url: `${apiFootballV2BaseUrl}fixtures/league/${leagueID}`,
+    headers: apiFootballHeaders,
+    params: {
+      timezone: "Europe/London",
+    },
+  });
+
+  return fixtures;
 };
 
 exports.getFixturesByMatchweekFromAPI = async (leagueID, matchweekNum) => {

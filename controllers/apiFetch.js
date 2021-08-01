@@ -7,6 +7,7 @@ const Pronogeek = require("../models/Pronogeek");
 const { PRONOGEEK_REF } = require("../models/refs");
 
 const { fixtureShortStatuses } = require("../models/enums/fixture");
+const { seasonStatuses } = require("../models/enums/season");
 
 const {
   matchFinished,
@@ -18,8 +19,10 @@ const {
 } = require("../utils/helpers");
 
 const {
+  getLeaguesByCountry,
   getSeasonFromAPI,
   getTeamsBySeasonFromAPI,
+  getFixturesBySeasonFromAPI,
   getFixturesByMatchweekFromAPI,
   getWinnerOddByFixtureFromAPI,
 } = require("../utils/fetchers/apiFootball");
@@ -54,10 +57,61 @@ exports.fetchAllSeasonTeamsFromApi = async (req, res) => {
 exports.fetchFullSeasonInfoFromApi = async (req, res) => {
   const { leagueID } = req.params;
 
-  const season = await getSeasonFromAPI(leagueID);
+  const existingSeason = await Season.findOne({ apiLeagueID: leagueID });
+
+  if (existingSeason)
+    return res.status(409).json({
+      message: {
+        en: "This season is already downloaded.",
+        fr: "Cette saison est déjà téléchargée.",
+      },
+    });
+
+  const seasonAPI = await getSeasonFromAPI(leagueID);
+
+  const newSeason = await Season.create({
+    leagueName: seasonAPI.name,
+    type: seasonAPI.type,
+    country: seasonAPI.country,
+    countryCode: seasonAPI.country_code,
+    status: seasonStatuses.UNDERWAY,
+    apiLeagueID: leagueID,
+    year: seasonAPI.seasonAPI,
+    startDate: seasonAPI.season_start,
+    endDate: seasonAPI.season_end,
+    logo: seasonAPI.logo,
+    flag: seasonAPI.flag,
+    provRankingOpen: true,
+    rankedTeams: [],
+    fixtures: [],
+  });
+
+  const newTeams = await fetchAndSaveSeasonTeams(leagueID, newSeason._id, res);
+
+  const newFixtures = await fetchAndSaveSeasonFixtures(
+    leagueID,
+    newSeason._id,
+    newTeams,
+    res
+  );
+
+  await Season.findByIdAndUpdate(newSeason._id, {
+    rankedTeams: mapID(newTeams),
+    fixtures: mapID(newFixtures),
+  });
 
   res.status(200).json({
-    season,
+    seasonAPI,
+  });
+};
+
+exports.fetchLeaguesByCountry = async (req, res) => {
+  const { country } = req.params;
+
+  const leagues = await getLeaguesByCountry(country);
+
+  res.status(200).json({
+    leagues,
   });
 };
 
@@ -343,4 +397,60 @@ async function fetchAndUpdatePostponedFixtures(leagueID) {
       );
     }
   }
+}
+
+async function fetchAndSaveSeasonTeams(apiLeagueID, seasonID, res) {
+  const teamsAPI = await getTeamsBySeasonFromAPI(apiLeagueID);
+
+  return await Promise.all(
+    teamsAPI.map(async (team) => {
+      return await Team.create({
+        name: team.name,
+        season: seasonID,
+        apiTeamID: team.team_id,
+        code: team.code,
+        logo: team.logo,
+        country: team.country,
+        stadium: team.venue_name,
+      });
+    })
+  );
+}
+
+async function fetchAndSaveSeasonFixtures(apiLeagueID, seasonID, teams, res) {
+  const fixturesAPI = await getFixturesBySeasonFromAPI(apiLeagueID);
+
+  return await Promise.all(
+    fixturesAPI.map(async (fixture) => {
+      const homeTeamID = getTeamIDForFixture(fixture, teams, "homeTeam");
+      const awayTeamID = getTeamIDForFixture(fixture, teams, "awayTeam");
+
+      return await Fixture.create({
+        season: seasonID,
+        homeTeam: homeTeamID,
+        awayTeam: awayTeamID,
+        apiFixtureID: `${fixture.fixture_id}`,
+        status: fixture.status,
+        statusShort: fixture.statusShort,
+        matchweek: convertAPIRoundToDBMatchweek(fixture.round),
+        date: fixture.event_date,
+        venue: fixture.venue,
+      });
+    })
+  );
+}
+
+function getTeamIDForFixture(fixture, teams, teamKey) {
+  return teams.find(
+    ({ apiTeamID }) => apiTeamID === `${fixture[teamKey].team_id}`
+  )._id;
+}
+
+function convertAPIRoundToDBMatchweek(round) {
+  const startIndex = round.indexOf("-") + 2;
+  return Number(round.substring(startIndex));
+}
+
+function mapID(array) {
+  return array.map(({ _id }) => _id);
 }

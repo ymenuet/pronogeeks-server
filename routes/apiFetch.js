@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  fetchLeaguesByCountry,
   fetchFullSeasonInfoFromApi,
   fetchAllSeasonTeamsFromApi,
   fetchSeasonRankingFromApi,
@@ -14,6 +15,13 @@ const { ensureLogin, checkRole, catchErrors } = require("../middlewares/index");
 const { userRoles } = require("../models/enums/user");
 
 //============SEASONS================
+
+router.get(
+  "/leagues/country/:country",
+  ensureLogin,
+  checkRole([userRoles.GEEK_ADMIN]),
+  catchErrors(fetchLeaguesByCountry)
+);
 
 router.get(
   "/season/:leagueID",
