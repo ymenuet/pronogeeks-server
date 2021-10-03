@@ -7,7 +7,7 @@ const { SEASON_REF, TEAM_REF, FIXTURE_REF } = require("./refs");
 const {
   fixtureLongStatuses,
   fixtureShortStatuses,
-  LIST_OF_ALL_FIXTURE_LONG_STATUSES,
+  LIST_OF_ALL_FIXTURE_WINNERS,
   LIST_OF_ALL_FIXTURE_SHORT_STATUSES,
 } = require("./enums/fixture");
 
@@ -50,7 +50,6 @@ const FixtureSchema = new Schema(
     },
     status: {
       type: String,
-      enum: LIST_OF_ALL_FIXTURE_LONG_STATUSES,
       default: fixtureLongStatuses.TBD,
     },
     statusShort: {
@@ -78,6 +77,23 @@ const FixtureSchema = new Schema(
       type: Date,
       default: Date.now() - MILLISECONDS_IN_2_DAYS,
     },
+    events: [
+      {
+        elapsed: Number,
+        elapsedPlus: Number,
+        apiTeamID: String,
+        team: {
+          type: String,
+          enum: LIST_OF_ALL_FIXTURE_WINNERS,
+        },
+        teamName: String,
+        player: String,
+        assist: String,
+        type: String,
+        detail: String,
+        comments: String,
+      },
+    ],
   },
   {
     timestamps: true,

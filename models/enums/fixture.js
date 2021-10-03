@@ -48,8 +48,22 @@ exports.LIST_OF_ALL_FIXTURE_SHORT_STATUSES = Object.values(
   this.fixtureShortStatuses
 );
 
+exports.fixtureEvents = {
+  goal: "GOAL",
+  ownGoal: "OWN GOAL",
+  penalty: "PENALTY",
+  missedPenalty: "MISSED PENALTY",
+  card: "CARD",
+  substitution: "SUBST",
+  var: "VAR",
+};
+
+exports.LIST_OF_ALL_FIXTURE_EVENTS = Object.values(this.fixtureEvents);
+
 exports.fixtureWinner = {
   HOME: "Home",
   DRAW: "Draw",
   AWAY: "Away",
 };
+
+exports.LIST_OF_ALL_FIXTURE_WINNERS = Object.values(this.fixtureWinner);

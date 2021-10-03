@@ -7,14 +7,14 @@ const apiFootballHeaders = {
   useQueryString: true,
 };
 
-const apiFootballV2BaseUrl = "https://api-football-v1.p.rapidapi.com/v2/";
+const apiFootballV2BaseUrl = "https://api-football-v1.p.rapidapi.com/v2";
 
 exports.getLeaguesByCountry = async (country) => {
   const {
     data: { api },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}leagues/country/${country}`,
+    url: `${apiFootballV2BaseUrl}/leagues/country/${country}`,
     headers: apiFootballHeaders,
   });
 
@@ -30,7 +30,7 @@ exports.getSeasonFromAPI = async (leagueID) => {
     },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}leagues/league/${leagueID}`,
+    url: `${apiFootballV2BaseUrl}/leagues/league/${leagueID}`,
     headers: apiFootballHeaders,
   });
 
@@ -44,7 +44,7 @@ exports.getTeamsBySeasonFromAPI = async (leagueID) => {
     },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}teams/league/${leagueID}`,
+    url: `${apiFootballV2BaseUrl}/teams/league/${leagueID}`,
     headers: apiFootballHeaders,
   });
 
@@ -58,7 +58,7 @@ exports.getSeasonRankingFromAPI = async (leagueID) => {
     },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}leagueTable/${leagueID}`,
+    url: `${apiFootballV2BaseUrl}/leagueTable/${leagueID}`,
     headers: apiFootballHeaders,
   });
 
@@ -72,7 +72,7 @@ exports.getFixturesBySeasonFromAPI = async (leagueID) => {
     },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}fixtures/league/${leagueID}`,
+    url: `${apiFootballV2BaseUrl}/fixtures/league/${leagueID}`,
     headers: apiFootballHeaders,
     params: {
       timezone: "Europe/London",
@@ -89,7 +89,7 @@ exports.getFixturesByMatchweekFromAPI = async (leagueID, matchweekNum) => {
     },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}fixtures/league/${leagueID}/Regular_Season_-_${matchweekNum}`,
+    url: `${apiFootballV2BaseUrl}/fixtures/league/${leagueID}/Regular_Season_-_${matchweekNum}`,
     headers: apiFootballHeaders,
     params: {
       timezone: "Europe/London",
@@ -106,9 +106,23 @@ exports.getWinnerOddByFixtureFromAPI = async (fixtureID) => {
     },
   } = await axios({
     method: "GET",
-    url: `${apiFootballV2BaseUrl}odds/fixture/${fixtureID}/label/1`,
+    url: `${apiFootballV2BaseUrl}/odds/fixture/${fixtureID}/label/1`,
     headers: apiFootballHeaders,
   });
 
   return odds[0];
+};
+
+exports.getFixtureEventsFromAPI = async (fixtureID) => {
+  const {
+    data: {
+      api: { events },
+    },
+  } = await axios({
+    method: "GET",
+    url: `${apiFootballV2BaseUrl}/events/${fixtureID}`,
+    headers: apiFootballHeaders,
+  });
+
+  return events;
 };

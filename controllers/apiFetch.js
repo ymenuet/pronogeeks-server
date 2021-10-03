@@ -6,7 +6,10 @@ const Pronogeek = require("../models/Pronogeek");
 
 const { PRONOGEEK_REF } = require("../models/refs");
 
-const { fixtureShortStatuses } = require("../models/enums/fixture");
+const {
+  fixtureShortStatuses,
+  fixtureWinner,
+} = require("../models/enums/fixture");
 const { seasonStatuses } = require("../models/enums/season");
 
 const {
@@ -25,6 +28,7 @@ const {
   getFixturesBySeasonFromAPI,
   getFixturesByMatchweekFromAPI,
   getWinnerOddByFixtureFromAPI,
+  getFixtureEventsFromAPI,
 } = require("../utils/fetchers/apiFootball");
 
 const {
@@ -315,6 +319,38 @@ exports.fetchNextMatchweekOddsFromApi = async (req, res) => {
   res.status(200).json({
     fixtures: fixtureUpdatedOdds,
   });
+};
+
+exports.fetchFixtureEvents = async (req, res) => {
+  const { fixtureID } = req.params;
+
+  const fixture = await Fixture.findOne({ _id: fixtureID }).populate(
+    populateHomeAndAwayTeams
+  );
+
+  const eventsFromAPI = await getFixtureEventsFromAPI(fixture.apiFixtureID);
+
+  events = eventsFromAPI.map((event) => ({
+    elapsed: event.elapsed,
+    elapsedPlus: event.elapsed_plus,
+    apiTeamID: event.team_id,
+    team:
+      `${event.team_id}` === fixture.homeTeam.apiTeamID
+        ? fixtureWinner.HOME
+        : fixtureWinner.AWAY,
+    teamName: event.teamName,
+    player: event.player,
+    assist: event.assist,
+    type: event.type.toUpperCase(),
+    detail: event.detail,
+    comments: event.comments,
+  }));
+
+  fixture.events = events;
+
+  await fixture.save();
+
+  res.status(200).json({ events });
 };
 
 async function saveUserProfilesWithUpdatedPoints(
