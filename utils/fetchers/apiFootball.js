@@ -126,3 +126,17 @@ exports.getFixtureEventsFromAPI = async (fixtureID) => {
 
   return events;
 };
+
+exports.getFixturesLiveFromAPI = async () => {
+  const {
+    data: {
+      api: { fixtures },
+    },
+  } = await axios({
+    method: "GET",
+    url: `${apiFootballV2BaseUrl}/fixtures/live`,
+    headers: apiFootballHeaders,
+  });
+
+  return fixtures;
+};

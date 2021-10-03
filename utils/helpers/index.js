@@ -298,3 +298,19 @@ exports.fetchAndSaveSeasonRanking = async (seasonID) => {
 
   return rankedTeams;
 };
+
+exports.mapFixtureEventFromAPI = (fixture) => (event) => ({
+  elapsed: event.elapsed,
+  elapsedPlus: event.elapsed_plus,
+  apiTeamID: event.team_id,
+  team:
+    `${event.team_id}` === fixture.homeTeam.apiTeamID
+      ? fixtureWinner.HOME
+      : fixtureWinner.AWAY,
+  teamName: event.teamName,
+  player: event.player,
+  assist: event.assist,
+  eventType: event.type.toUpperCase(),
+  detail: event.detail,
+  comments: event.comments,
+});

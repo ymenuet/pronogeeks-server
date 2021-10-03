@@ -89,7 +89,7 @@ const FixtureSchema = new Schema(
         teamName: String,
         player: String,
         assist: String,
-        type: String,
+        eventType: String,
         detail: String,
         comments: String,
       },

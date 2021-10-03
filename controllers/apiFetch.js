@@ -19,6 +19,7 @@ const {
   determineWinnerFixture,
   calculateOdds,
   fetchAndSaveSeasonRanking,
+  mapFixtureEventFromAPI,
 } = require("../utils/helpers");
 
 const {
@@ -29,6 +30,7 @@ const {
   getFixturesByMatchweekFromAPI,
   getWinnerOddByFixtureFromAPI,
   getFixtureEventsFromAPI,
+  getFixturesLiveFromAPI,
 } = require("../utils/fetchers/apiFootball");
 
 const {
@@ -330,27 +332,45 @@ exports.fetchFixtureEvents = async (req, res) => {
 
   const eventsFromAPI = await getFixtureEventsFromAPI(fixture.apiFixtureID);
 
-  events = eventsFromAPI.map((event) => ({
-    elapsed: event.elapsed,
-    elapsedPlus: event.elapsed_plus,
-    apiTeamID: event.team_id,
-    team:
-      `${event.team_id}` === fixture.homeTeam.apiTeamID
-        ? fixtureWinner.HOME
-        : fixtureWinner.AWAY,
-    teamName: event.teamName,
-    player: event.player,
-    assist: event.assist,
-    type: event.type.toUpperCase(),
-    detail: event.detail,
-    comments: event.comments,
-  }));
+  const events = eventsFromAPI.map(mapFixtureEventFromAPI(fixture));
 
   fixture.events = events;
 
   await fixture.save();
 
   res.status(200).json({ events });
+};
+
+exports.fetchFixturesLive = async (req, res) => {
+  const fixturesFromAPI = await getFixturesLiveFromAPI();
+
+  const fixturesFromDB = await Fixture.find().populate(
+    populateHomeAndAwayTeams
+  );
+
+  const updatedFixtures = await Promise.all(
+    fixturesFromAPI.map(async (fixture) => {
+      const fixtureToUpdate = fixturesFromDB.find(
+        ({ apiFixtureID }) => apiFixtureID === `${fixture.fixture_id}`
+      );
+
+      if (fixtureToUpdate) {
+        const fixtureEvents = fixture.events.map(
+          mapFixtureEventFromAPI(fixtureToUpdate)
+        );
+
+        fixtureToUpdate.events = fixtureEvents;
+
+        await fixtureToUpdate.save();
+      }
+
+      return fixtureToUpdate;
+    })
+  );
+
+  res
+    .status(200)
+    .json({ fixtures: updatedFixtures.filter((fixture) => !!fixture) });
 };
 
 async function saveUserProfilesWithUpdatedPoints(

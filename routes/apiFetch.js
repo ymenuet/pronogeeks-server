@@ -9,6 +9,7 @@ const {
   fetchSeasonMatchweekFixturesFromApi,
   fetchNextMatchweekOddsFromApi,
   fetchFixtureEvents,
+  fetchFixturesLive,
 } = require("../controllers/apiFetch");
 
 const { ensureLogin, checkRole, catchErrors } = require("../middlewares/index");
@@ -61,6 +62,13 @@ router.get(
   ensureLogin,
   checkRole([userRoles.GEEK_ADMIN, userRoles.SUPER_GEEK]),
   catchErrors(fetchFixtureEvents)
+);
+
+router.get(
+  "/fixtures/live",
+  ensureLogin,
+  checkRole([userRoles.GEEK_ADMIN, userRoles.SUPER_GEEK]),
+  catchErrors(fetchFixturesLive)
 );
 
 //===========FIXTURE ODDS============
