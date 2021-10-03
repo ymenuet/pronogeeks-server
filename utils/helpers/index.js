@@ -283,6 +283,7 @@ exports.fetchAndSaveSeasonRanking = async (seasonID) => {
           lose: team.all.lose,
           goalsFor: team.all.goalsFor,
           goalsAgainst: team.all.goalsAgainst,
+          forme: team.forme,
         },
         {
           new: true,

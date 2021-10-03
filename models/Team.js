@@ -1,14 +1,9 @@
-const {
-    Schema,
-    model
-} = require('mongoose')
+const { Schema, model } = require("mongoose");
 
-const {
-    SEASON_REF,
-    TEAM_REF
-} = require('./refs')
+const { SEASON_REF, TEAM_REF } = require("./refs");
 
-const TeamSchema = new Schema({
+const TeamSchema = new Schema(
+  {
     name: String,
     code: String,
     stadium: String,
@@ -16,8 +11,8 @@ const TeamSchema = new Schema({
     logo: String,
     apiTeamID: String,
     season: {
-        type: Schema.Types.ObjectId,
-        ref: SEASON_REF
+      type: Schema.Types.ObjectId,
+      ref: SEASON_REF,
     },
     rank: Number,
     points: Number,
@@ -27,9 +22,12 @@ const TeamSchema = new Schema({
     draw: Number,
     lose: Number,
     goalsFor: Number,
-    goalsAgainst: Number
-}, {
-    timestamps: true
-})
+    goalsAgainst: Number,
+    forme: String,
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = model(TEAM_REF, TeamSchema)
+module.exports = model(TEAM_REF, TeamSchema);
