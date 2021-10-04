@@ -1,7 +1,8 @@
 const Pronogeek = require("../../models/Pronogeek");
 const { pronogeekPopulator } = require("../populators");
 const { matchweekBonusPoints } = require("../constants");
-const { matchFinished } = require(".");
+const { updateUsersPoints } = require("./updateUsersPoints");
+const { matchFinished, removeDuplicatesFromArray } = require(".");
 
 const getPronogeeksToUpdate = async (fixtureIds) => {
   let pronogeeksToUpdate;
@@ -76,7 +77,11 @@ const updatePronogeek = async (pronogeek) => {
   pronogeek.addedToProfile = true;
   await pronogeek.save();
 
-  return pronogeek.geek._id.toString();
+  return {
+    userID: pronogeek.geek._id.toString(),
+    matchweek: pronogeek.matchweek,
+    seasonID: pronogeek.season.toString(),
+  };
 };
 
 const updatePronogeeks = async (pronogeeks) => {
@@ -86,10 +91,12 @@ const updatePronogeeks = async (pronogeeks) => {
 exports.updatePronos = async (fixtureIds) => {
   const pronogeeksToUpdate = await getPronogeeksToUpdate(fixtureIds);
 
-  let usersToUpdate = [];
+  let usersToUpdateWithDuplicates = [];
 
   if (pronogeeksToUpdate)
-    usersToUpdate = await updatePronogeeks(pronogeeksToUpdate);
+    usersToUpdateWithDuplicates = await updatePronogeeks(pronogeeksToUpdate);
 
-  console.log(usersToUpdate);
+  const usersToUpdate = removeDuplicatesFromArray(usersToUpdateWithDuplicates);
+
+  await updateUsersPoints(usersToUpdate);
 };

@@ -3,6 +3,7 @@ const Fixture = require("../../models/Fixture");
 const { seasonStatuses } = require("../../models/enums/season");
 const { populateHomeAndAwayTeams } = require("../populators");
 const { getFixturesLiveFromAPI } = require("../fetchers/apiFootball");
+const { updatePronos } = require("./updatePronos");
 const { determineWinnerFixture, matchFinished } = require(".");
 
 const mapAndSaveFixturesFromApi = (fixturesFromDB) => async (fixture) => {
@@ -55,4 +56,6 @@ exports.fetchAndSaveCurrentFixtures = async () => {
   const fixturesOver = fixturesUpdated
     .filter(({ statusShort }) => matchFinished(statusShort))
     .map(({ _id }) => _id);
+
+  await updatePronos(fixturesOver);
 };

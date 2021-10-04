@@ -320,3 +320,8 @@ exports.customSetInterval = (callback, interval) => {
   callback();
   setInterval(callback, interval);
 };
+
+exports.removeDuplicatesFromArray = (array) =>
+  Array.from(new Set(array.map((elem) => JSON.stringify(elem)))).map((elem) =>
+    JSON.parse(elem)
+  );

@@ -18,8 +18,13 @@ const setUpdatePronosInterval = () => {
 };
 
 exports.setDatabaseUpdatersIntervals = () => {
-  setUpdatePronosInterval();
   if (process.env.DISABLE_DATABASE_UPDATE === "true") return;
 
   setLiveFixturesInterval();
+  // updatePronos is already called in liveFixturesInterval
+  // setUpdatePronosInterval();
+
+  // Add a daily interval for fetching every undergoing season's games with its date and status
+  // Add a daily interval for fetching every undergoing season's games odds
+  // Add a timeout and/or interval for fetching every undergoing season's ranking (it could come within liveFixturesInterval with a timeout to wait for it to update)
 };
