@@ -60,7 +60,8 @@ exports.matchFinished = (statusShort) => {
     statusShort !== fixtureShortStatuses.BT &&
     statusShort !== fixtureShortStatuses.SUSP &&
     statusShort !== fixtureShortStatuses.INT &&
-    statusShort !== fixtureShortStatuses.PST
+    statusShort !== fixtureShortStatuses.PST &&
+    statusShort !== fixtureShortStatuses.CANC
   );
 };
 
@@ -314,3 +315,8 @@ exports.mapFixtureEventFromAPI = (fixture) => (event) => ({
   detail: event.detail,
   comments: event.comments,
 });
+
+exports.customSetInterval = (callback, interval) => {
+  callback();
+  setInterval(callback, interval);
+};

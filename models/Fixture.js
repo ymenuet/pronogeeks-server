@@ -69,6 +69,10 @@ const FixtureSchema = new Schema(
       type: Number,
       default: null,
     },
+    points: {
+      type: Number,
+      default: null,
+    },
     lastScoreUpdate: {
       type: Date,
       default: Date.now() - MILLISECONDS_IN_2_DAYS,
