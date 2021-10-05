@@ -41,24 +41,28 @@ const getPronogeeksToUpdate = async (fixtureIds) => {
 };
 
 const calculateCorrectPronogeekPoints = (pronogeek) => {
+  const {
+    fixture: { points, goalsHomeTeam, goalsAwayTeam, homeTeam, awayTeam },
+  } = pronogeek;
+
   pronogeek.correct = true;
-  pronogeek.points = pronogeek.fixture.points;
+  pronogeek.points = points;
   if (
-    pronogeek.homeProno == pronogeek.fixture.goalsHomeTeam &&
-    pronogeek.awayProno == pronogeek.fixture.goalsAwayTeam
+    pronogeek.homeProno == goalsHomeTeam &&
+    pronogeek.awayProno == goalsAwayTeam
   ) {
     pronogeek.exact = true;
-    pronogeek.points = pronogeek.fixture.points * 2;
+    pronogeek.points = points * 2;
   }
 
   // add 30 bonus points if good pronostic on favorite team game
   const userSeason = pronogeek.geek.seasons.find(
     ({ season }) => season._id.toString() == pronogeek.season.toString()
   );
-  const userFavTeam = userSeason.favTeam?.toString();
+  const userFavTeam = userSeason.favTeam?._id.toString();
   if (
-    userFavTeam === pronogeek.fixture.homeTeam.toString() ||
-    userFavTeam === pronogeek.fixture.awayTeam.toString()
+    userFavTeam === homeTeam._id.toString() ||
+    userFavTeam === awayTeam._id.toString()
   ) {
     pronogeek.bonusFavTeam = true;
     pronogeek.points += matchweekBonusPoints.FAVORITE_TEAM;
@@ -67,11 +71,7 @@ const calculateCorrectPronogeekPoints = (pronogeek) => {
 
 const updatePronogeek = async (pronogeek) => {
   if (pronogeek.winner === pronogeek.fixture.winner && !!pronogeek.geek) {
-    calculateCorrectPronogeekPoints(
-      pronogeek,
-      pronogeek.fixture,
-      pronogeek.fixture.points
-    );
+    calculateCorrectPronogeekPoints(pronogeek);
   }
 
   pronogeek.addedToProfile = true;
