@@ -5,6 +5,7 @@ const {
     createSeason,
     closeSeason,
     closeRankingsSeason,
+    getSeasonMenuItem,
     getSeason,
     getUndergoingSeasons,
     getUpcomingAndUndergoingSeasons,
@@ -26,6 +27,8 @@ router.get('/current', catchErrors(getUndergoingSeasons))
 router.get('/futureAndCurrent', catchErrors(getUpcomingAndUndergoingSeasons))
 
 router.get('/closeSeason/:seasonID', checkRole([userRoles.GEEK_ADMIN]), catchErrors(closeSeason))
+
+router.get('/menuItem', catchErrors(getSeasonMenuItem))
 
 router.get('/:seasonID', catchErrors(getSeason))
 

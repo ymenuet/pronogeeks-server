@@ -26,6 +26,12 @@ exports.getSeason = async(req, res) => {
     })
 }
 
+exports.getSeasonMenuItem = async(req, res) => {
+    res.status(200).json({
+        seasonMenuItem: process.env.SEASON_MENU_ITEM
+    })
+}
+
 exports.closeSeason = async(req, res) => {
     const {
         seasonID
