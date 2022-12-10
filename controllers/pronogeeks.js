@@ -12,7 +12,7 @@ const {
 } = require('../models/enums/fixture')
 
 const {
-    populateHomeAndAwayTeams
+    homeAndAwayTeamsPopulator
 } = require('../utils/populators')
 
 const {
@@ -207,7 +207,7 @@ async function saveOneProno({
     awayProno = parseInt(awayProno)
 
     const fixture = await Fixture.findById(fixtureID)
-        .populate(populateHomeAndAwayTeams)
+        .populate(homeAndAwayTeamsPopulator)
 
     const winner = homeProno > awayProno ? fixture.homeTeam.name :
         awayProno > homeProno ? fixture.awayTeam.name :

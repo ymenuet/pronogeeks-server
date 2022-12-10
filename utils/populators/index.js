@@ -31,7 +31,7 @@ exports.userPopulator = [{
     }
 }]
 
-exports.populateHomeAndAwayTeams = [{
+exports.homeAndAwayTeamsPopulator = [{
     path: 'homeTeam',
     model: TEAM_REF
 }, {
@@ -55,7 +55,7 @@ exports.seasonPopulator = [{
             date: 1
         }
     },
-    populate: this.populateHomeAndAwayTeams
+    populate: this.homeAndAwayTeamsPopulator
 }, {
     path: 'rankedTeams',
     model: TEAM_REF
@@ -78,7 +78,7 @@ exports.geekleaguePopulator = [{
 exports.pronogeekPopulator = [{
     path: 'fixture',
     model: FIXTURE_REF,
-    populate: this.populateHomeAndAwayTeams
+    populate: this.homeAndAwayTeamsPopulator
 }, {
     path: 'geek',
     model: USER_REF,
