@@ -79,11 +79,11 @@ app.use(session({
     resave: true,
     saveUninitialized: true,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7
+        maxAge: 1000 * 60 * 60 * 24 * 7 * 30 * 12 * 10 // 10 years
     },
     store: new MongoStore({
         mongooseConnection: mongoose.connection,
-        ttl: 60 * 60 * 24 * 7 * 30
+        ttl: 60 * 60 * 24 * 7 * 30 * 12 * 10 // 10 years
     })
 }))
 app.use(flash());
