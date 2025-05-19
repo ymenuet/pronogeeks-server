@@ -58,23 +58,28 @@ exports.matchFinished = (statusShort) => {
         statusShort !== fixtureShortStatuses.TBD &&
         statusShort !== fixtureShortStatuses.NS &&
         statusShort !== fixtureShortStatuses.H1 &&
+        statusShort !== fixtureShortStatuses["1H"] &&
         statusShort !== fixtureShortStatuses.HT &&
         statusShort !== fixtureShortStatuses.H2 &&
+        statusShort !== fixtureShortStatuses["2H"] &&
         statusShort !== fixtureShortStatuses.ET &&
         statusShort !== fixtureShortStatuses.P &&
         statusShort !== fixtureShortStatuses.BT &&
         statusShort !== fixtureShortStatuses.SUSP &&
         statusShort !== fixtureShortStatuses.INT &&
+        statusShort !== fixtureShortStatuses.CANC &&
+        statusShort !== fixtureShortStatuses.ABD &&
+        statusShort !== fixtureShortStatuses.LIVE &&
         statusShort !== fixtureShortStatuses.PST
     );
 };
 
 exports.determineWinnerFixture = (fixture, fixtureOdds) => {
-    const goalsHomeTeam = fixture.goalsHomeTeam;
-    const goalsAwayTeam = fixture.goalsAwayTeam;
+    const goalsHomeTeam = fixture.goals.home;
+    const goalsAwayTeam = fixture.goals.away;
     let winner = null;
     let points = 0;
-    const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed;
+    const timeElapsed = fixture.fixture.status.elapsed == 0 ? null : fixture.fixture.status.elapsed;
     if (
         typeof goalsHomeTeam === "number" &&
         goalsHomeTeam >= 0 &&
@@ -82,10 +87,10 @@ exports.determineWinnerFixture = (fixture, fixtureOdds) => {
         goalsAwayTeam >= 0
     ) {
         if (goalsHomeTeam > goalsAwayTeam) {
-            winner = fixture.homeTeam.team_name;
+            winner = fixture.teams.home.name;
             points = fixtureOdds.oddsWinHome || 0;
         } else if (goalsHomeTeam < goalsAwayTeam) {
-            winner = fixture.awayTeam.team_name;
+            winner = fixture.teams.away.name;
             points = fixtureOdds.oddsWinAway || 0;
         } else {
             winner = fixtureWinner.DRAW;
@@ -241,22 +246,27 @@ exports.updateUserPoints = (user, seasonID, matchweekNumber) => {
 };
 
 exports.calculateOdds = (odd, fixture) => {
-    let unibetOdds = odd.bookmakers.filter(
-        (bookmaker) => bookmaker.bookmaker_id === 16
+    const odds = odd.bookmakers[0];
+    let unibetOdds = odd.bookmakers.find(
+        (bookmaker) => bookmaker.id === 16
     );
-    let bwinOdds = odd.bookmakers.filter(
-        (bookmaker) => bookmaker.bookmaker_id === 6
-    );
-    if (unibetOdds.length > 0) unibetOdds = unibetOdds[0];
-    else if (bwinOdds.length > 0) unibetOdds = bwinOdds[0];
-    else unibetOdds = odd.bookmakers[0];
+    if (unibetOdds) odds = unibetOdds;
+    else {
+        let bwinOdds = odd.bookmakers.find(
+            (bookmaker) => bookmaker.id === 6
+        );
+        if (bwinOdds) odds = bwinOdds;
+    }
+
+    const matchWinnerOdds = odds.bets.find(({
+        id
+    }) => id === 1).values; // "Match Winner" odd has id 1
 
     const extractOdd = (filterValue) =>
         Math.round(
-            // First value of bets array matches the "Match Winner" odd
-            unibetOdds.bets[0].values.filter(
+            matchWinnerOdds.find(
                 (oddValue) => oddValue.value === filterValue
-            )[0].odd * ODDS_FACTOR
+            ).odd * ODDS_FACTOR
         );
 
     fixture.oddsWinHome = extractOdd(fixtureWinner.HOME);
@@ -269,24 +279,26 @@ exports.calculateOdds = (odd, fixture) => {
 exports.fetchAndSaveSeasonRanking = async(seasonID) => {
     const season = await Season.findById(seasonID);
     const leagueID = season.apiLeagueID;
+    const year = season.year
 
-    const rankingAPI = await getSeasonRankingFromAPI(leagueID);
+    const rankingAPI = await getSeasonRankingFromAPI(leagueID, year);
 
     const rankedTeams = await Promise.all(
-        rankingAPI[0].map(async(team) => {
+        rankingAPI.map(async(team) => {
             return await Team.findOneAndUpdate({
-                apiTeamID: team.team_id,
+                apiTeamID: team.team.id,
                 season: seasonID,
             }, {
                 rank: team.rank,
                 points: team.points,
                 goalsDiff: team.goalsDiff,
-                matchsPlayed: team.all.matchsPlayed,
+                matchsPlayed: team.all.played,
                 win: team.all.win,
                 draw: team.all.draw,
                 lose: team.all.lose,
-                goalsFor: team.all.goalsFor,
-                goalsAgainst: team.all.goalsAgainst,
+                goalsFor: team.all.goals.for,
+                goalsAgainst: team.all.goals.against,
+                form: team.form,
             }, {
                 new: true,
             });
