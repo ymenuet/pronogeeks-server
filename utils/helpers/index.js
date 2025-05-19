@@ -269,24 +269,26 @@ exports.calculateOdds = (odd, fixture) => {
 exports.fetchAndSaveSeasonRanking = async(seasonID) => {
     const season = await Season.findById(seasonID);
     const leagueID = season.apiLeagueID;
+    const year = season.year
 
-    const rankingAPI = await getSeasonRankingFromAPI(leagueID);
+    const rankingAPI = await getSeasonRankingFromAPI(leagueID, year);
 
     const rankedTeams = await Promise.all(
-        rankingAPI[0].map(async(team) => {
+        rankingAPI.map(async(team) => {
             return await Team.findOneAndUpdate({
-                apiTeamID: team.team_id,
+                apiTeamID: team.team.id,
                 season: seasonID,
             }, {
                 rank: team.rank,
                 points: team.points,
                 goalsDiff: team.goalsDiff,
-                matchsPlayed: team.all.matchsPlayed,
+                matchsPlayed: team.all.played,
                 win: team.all.win,
                 draw: team.all.draw,
                 lose: team.all.lose,
-                goalsFor: team.all.goalsFor,
-                goalsAgainst: team.all.goalsAgainst,
+                goalsFor: team.all.goals.for,
+                goalsAgainst: team.all.goals.against,
+                form: team.form,
             }, {
                 new: true,
             });

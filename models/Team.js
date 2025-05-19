@@ -27,7 +27,8 @@ const TeamSchema = new Schema({
     draw: Number,
     lose: Number,
     goalsFor: Number,
-    goalsAgainst: Number
+    goalsAgainst: Number,
+    form: String
 }, {
     timestamps: true
 })
