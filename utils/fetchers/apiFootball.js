@@ -112,28 +112,24 @@ exports.getFixturesBySeasonFromAPI = async(leagueID, seasonYear = new Date().get
     return response;
 };
 
-exports.getFixturesByMatchweekFromAPI = async(leagueID, matchweekNum) => {
-    try {
-        const response = await axios({
-            method: "GET",
-            url: `${apiFootballV2BaseUrl}fixtures/league/${leagueID}/Regular_Season_-_${matchweekNum}`,
-            headers: apiFootballHeaders,
-            params: {
-                timezone: "Europe/London",
-            },
-        });
+exports.getFixturesByMatchweekFromAPI = async(leagueID, matchweekNum, seasonYear = new Date().getFullYear()) => {
+    const {
+        data: {
+            response
+        }
+    } = await axios({
+        method: "GET",
+        url: `${apiFootballV3BaseUrl}/fixtures`,
+        headers: apiFootballHeaders,
+        params: {
+            timezone: "Europe/London",
+            league: leagueID,
+            season: seasonYear,
+            round: `Regular Season - ${matchweekNum}`
+        },
+    });
 
-
-        console.log(
-            response.data.api
-        )
-    } catch (error) {
-        console.error(error)
-    }
-
-    return;
-
-    return fixtures;
+    return response;
 };
 
 exports.getWinnerOddByFixtureFromAPI = async(fixtureID) => {

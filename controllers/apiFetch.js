@@ -39,7 +39,7 @@ const {
     profileFilter,
     MILLISECONDS_IN_1_DAY,
     MILLISECONDS_IN_30_MINUTES,
-    MILLISECONDS_IN_25_MINUTES,
+    MILLISECONDS_IN_10_MINUTES,
 } = require("../utils/constants");
 
 const {
@@ -172,6 +172,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
     } = req.params;
     const season = await Season.findById(seasonID);
     const leagueID = season.apiLeagueID;
+    const seasonYear = season.year;
 
     // Cancel fetch if all matches already finished, not to use a request without needing to
     const matchweekFixtures = await Fixture.find({
@@ -190,7 +191,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         });
 
     // No "await" because it is not important for the rest of this function and we don't want to block it if there is an error here
-    fetchAndUpdatePostponedFixtures(leagueID);
+    fetchAndUpdatePostponedFixtures(leagueID, seasonID, seasonYear);
 
     let rankingToUpdate = false;
 
@@ -198,30 +199,31 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
 
     const fixturesAPI = await getFixturesByMatchweekFromAPI(
         leagueID,
-        matchweekNumber
+        matchweekNumber,
+        seasonYear
     );
 
     const fixtures = await Promise.all(
         fixturesAPI.map(async(fixture) => {
             const homeTeam = await Team.findOne({
-                apiTeamID: fixture.homeTeam.team_id,
+                apiTeamID: fixture.teams.home.id,
                 season: seasonID,
             });
             const homeTeamId = homeTeam._id;
             const awayTeam = await Team.findOne({
-                apiTeamID: fixture.awayTeam.team_id,
+                apiTeamID: fixture.teams.away.id,
                 season: seasonID,
             });
             const awayTeamId = awayTeam._id;
 
             let fixtureFromDB = await Fixture.findOne({
-                apiFixtureID: fixture.fixture_id,
+                apiFixtureID: fixture.fixture.id,
                 season: seasonID,
             }).populate(homeAndAwayTeamsPopulator);
 
             const matchFinishedSinceLastUpdate =
-                matchFinished(fixture.statusShort) &&
-                fixture.statusShort !== fixtureFromDB.statusShort;
+                matchFinished(fixture.fixture.status.short) &&
+                fixture.fixture.status.short !== fixtureFromDB.statusShort;
 
             if (!rankingToUpdate) rankingToUpdate = matchFinishedSinceLastUpdate;
 
@@ -231,23 +233,22 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
                 timeElapsed,
                 winner,
                 points
-            } =
-            determineWinnerFixture(fixture, fixtureFromDB);
+            } = determineWinnerFixture(fixture, fixtureFromDB);
 
             if (!matchFinished(fixtureFromDB.statusShort)) {
                 fixtureFromDB = await Fixture.findOneAndUpdate({
-                    apiFixtureID: fixture.fixture_id,
+                    apiFixtureID: fixture.fixture.id,
                     season: seasonID,
                 }, {
                     matchweek: matchweekNumber,
-                    date: fixture.event_date,
+                    date: fixture.fixture.date,
                     homeTeam: homeTeamId,
                     awayTeam: awayTeamId,
                     goalsHomeTeam,
                     goalsAwayTeam,
                     winner,
-                    status: fixture.status,
-                    statusShort: fixture.statusShort,
+                    status: fixture.fixture.status.long,
+                    statusShort: fixture.fixture.status.short,
                     timeElapsed,
                     lastScoreUpdate: Date.now(),
                 }, {
@@ -296,7 +297,7 @@ exports.fetchSeasonMatchweekFixturesFromApi = async(req, res) => {
         clearTimeout(updateRankingTimeoutId);
         updateRankingTimeoutId = setTimeout(
             () => fetchAndSaveSeasonRanking(seasonID),
-            MILLISECONDS_IN_25_MINUTES
+            MILLISECONDS_IN_10_MINUTES
         );
     }
 
@@ -391,9 +392,18 @@ async function saveUserProfilesWithUpdatedPoints(
     );
 }
 
-async function fetchAndUpdatePostponedFixtures(leagueID) {
+async function fetchAndUpdatePostponedFixtures(leagueID, seasonID, seasonYear) {
     const postponedFixturesDB = await Fixture.find({
-        statusShort: fixtureShortStatuses.PST,
+        season: seasonID,
+        $or: [{
+            statusShort: fixtureShortStatuses.PST,
+        }, {
+            statusShort: fixtureShortStatuses.SUSP,
+        }, {
+            statusShort: fixtureShortStatuses.INT,
+        }, {
+            statusShort: fixtureShortStatuses.ABD,
+        }]
     });
 
     if (postponedFixturesDB.length > 0) {
@@ -410,7 +420,7 @@ async function fetchAndUpdatePostponedFixtures(leagueID) {
         if (uniqueMatchweeks.length > 0) {
             const matchweeksWithPostponedFixturesAPI = await Promise.all(
                 uniqueMatchweeks.map(async(matchweekNum) => {
-                    return await getFixturesByMatchweekFromAPI(leagueID, matchweekNum);
+                    return await getFixturesByMatchweekFromAPI(leagueID, matchweekNum, seasonYear);
                 })
             );
 
@@ -422,15 +432,15 @@ async function fetchAndUpdatePostponedFixtures(leagueID) {
             const postponedFixturesToUpdate = fixturesToUpdate.filter((fixture) =>
                 postponedFixturesDB
                 .map((fixtureDB) => fixtureDB.apiFixtureID.toString())
-                .includes(fixture.fixture_id.toString())
+                .includes(fixture.fixture.id.toString())
             );
 
             await Promise.all(
                 postponedFixturesToUpdate.map(async(fixture) => {
                     await Fixture.findOneAndUpdate({
-                        apiFixtureID: fixture.fixture_id,
+                        apiFixtureID: fixture.fixture.id,
                     }, {
-                        date: fixture.event_date,
+                        date: fixture.fixture.date,
                         lastScoreUpdate: Date.now(),
                     });
                 })

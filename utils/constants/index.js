@@ -34,6 +34,6 @@ exports.provRankingBonusPoints = {
 exports.MILLISECONDS_IN_2_DAYS = 1000 * 60 * 60 * 24 * 2
 exports.MILLISECONDS_IN_1_DAY = 1000 * 60 * 60 * 24
 exports.MILLISECONDS_IN_30_MINUTES = 1000 * 60 * 30
-exports.MILLISECONDS_IN_25_MINUTES = 1000 * 60 * 25
+exports.MILLISECONDS_IN_10_MINUTES = 1000 * 60 * 10
 
 exports.ODDS_FACTOR = 10

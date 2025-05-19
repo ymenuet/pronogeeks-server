@@ -58,23 +58,28 @@ exports.matchFinished = (statusShort) => {
         statusShort !== fixtureShortStatuses.TBD &&
         statusShort !== fixtureShortStatuses.NS &&
         statusShort !== fixtureShortStatuses.H1 &&
+        statusShort !== fixtureShortStatuses["1H"] &&
         statusShort !== fixtureShortStatuses.HT &&
         statusShort !== fixtureShortStatuses.H2 &&
+        statusShort !== fixtureShortStatuses["2H"] &&
         statusShort !== fixtureShortStatuses.ET &&
         statusShort !== fixtureShortStatuses.P &&
         statusShort !== fixtureShortStatuses.BT &&
         statusShort !== fixtureShortStatuses.SUSP &&
         statusShort !== fixtureShortStatuses.INT &&
+        statusShort !== fixtureShortStatuses.CANC &&
+        statusShort !== fixtureShortStatuses.ABD &&
+        statusShort !== fixtureShortStatuses.LIVE &&
         statusShort !== fixtureShortStatuses.PST
     );
 };
 
 exports.determineWinnerFixture = (fixture, fixtureOdds) => {
-    const goalsHomeTeam = fixture.goalsHomeTeam;
-    const goalsAwayTeam = fixture.goalsAwayTeam;
+    const goalsHomeTeam = fixture.goals.home;
+    const goalsAwayTeam = fixture.goals.away;
     let winner = null;
     let points = 0;
-    const timeElapsed = fixture.elapsed == 0 ? null : fixture.elapsed;
+    const timeElapsed = fixture.fixture.status.elapsed == 0 ? null : fixture.fixture.status.elapsed;
     if (
         typeof goalsHomeTeam === "number" &&
         goalsHomeTeam >= 0 &&
@@ -82,10 +87,10 @@ exports.determineWinnerFixture = (fixture, fixtureOdds) => {
         goalsAwayTeam >= 0
     ) {
         if (goalsHomeTeam > goalsAwayTeam) {
-            winner = fixture.homeTeam.team_name;
+            winner = fixture.teams.home.name;
             points = fixtureOdds.oddsWinHome || 0;
         } else if (goalsHomeTeam < goalsAwayTeam) {
-            winner = fixture.awayTeam.team_name;
+            winner = fixture.teams.away.name;
             points = fixtureOdds.oddsWinAway || 0;
         } else {
             winner = fixtureWinner.DRAW;
