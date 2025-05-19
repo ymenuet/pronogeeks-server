@@ -246,22 +246,27 @@ exports.updateUserPoints = (user, seasonID, matchweekNumber) => {
 };
 
 exports.calculateOdds = (odd, fixture) => {
-    let unibetOdds = odd.bookmakers.filter(
-        (bookmaker) => bookmaker.bookmaker_id === 16
+    const odds = odd.bookmakers[0];
+    let unibetOdds = odd.bookmakers.find(
+        (bookmaker) => bookmaker.id === 16
     );
-    let bwinOdds = odd.bookmakers.filter(
-        (bookmaker) => bookmaker.bookmaker_id === 6
-    );
-    if (unibetOdds.length > 0) unibetOdds = unibetOdds[0];
-    else if (bwinOdds.length > 0) unibetOdds = bwinOdds[0];
-    else unibetOdds = odd.bookmakers[0];
+    if (unibetOdds) odds = unibetOdds;
+    else {
+        let bwinOdds = odd.bookmakers.find(
+            (bookmaker) => bookmaker.id === 6
+        );
+        if (bwinOdds) odds = bwinOdds;
+    }
+
+    const matchWinnerOdds = odds.bets.find(({
+        id
+    }) => id === 1).values; // "Match Winner" odd has id 1
 
     const extractOdd = (filterValue) =>
         Math.round(
-            // First value of bets array matches the "Match Winner" odd
-            unibetOdds.bets[0].values.filter(
+            matchWinnerOdds.find(
                 (oddValue) => oddValue.value === filterValue
-            )[0].odd * ODDS_FACTOR
+            ).odd * ODDS_FACTOR
         );
 
     fixture.oddsWinHome = extractOdd(fixtureWinner.HOME);

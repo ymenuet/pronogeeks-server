@@ -135,15 +135,16 @@ exports.getFixturesByMatchweekFromAPI = async(leagueID, matchweekNum, seasonYear
 exports.getWinnerOddByFixtureFromAPI = async(fixtureID) => {
     const {
         data: {
-            api: {
-                odds
-            },
+            response,
         },
     } = await axios({
         method: "GET",
-        url: `${apiFootballV2BaseUrl}odds/fixture/${fixtureID}`,
+        url: `${apiFootballV3BaseUrl}/odds`,
+        params: {
+            fixture: fixtureID
+        },
         headers: apiFootballHeaders,
     });
 
-    return odds[0];
+    return response[0];
 };
